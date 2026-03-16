@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cierre Contable — Inversiones Bolívar</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:      #0D1B2A;
+  --navy-mid:  #162436;
+  --gold:      #8B6914;
+  --gold-light:#C4A052;
+  --gold-pale: #F5EED8;
+  --green:     #1A6B3C;
+  --green-bg:  #EAF5EE;
+  --amber:     #92600A;
+  --amber-bg:  #FEF3E2;
+  --gray-50:   #FAFAF9;
+  --gray-100:  #F4F3F0;
+  --gray-200:  #E8E5E0;
+  --gray-400:  #A89F94;
+  --gray-600:  #6B6258;
+  --gray-800:  #2E2924;
+  --border:    #E2DED7;
+  --text:      #1E1A16;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: #fff;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes slideIn  { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@keyframes countUp  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse    { 0%,100% { box-shadow:0 0 0 0 rgba(26,107,60,0.4); } 50% { box-shadow:0 0 0 6px rgba(26,107,60,0); } }
+@keyframes shimmer  { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+
+.reveal { opacity:0; transform:translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--navy);
+  padding: 0.7rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadeIn 0.6s ease forwards;
+}
+.topbar-logo {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.05rem;
+  color: #D4AF6A;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.topbar-right {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  text-align: right;
+  line-height: 1.8;
+}
+.topbar-right span { color: rgba(255,255,255,0.7); }
+
+.gold-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 40%, rgba(196,160,82,0.2) 100%);
+  animation: slideIn 1s ease 0.4s both;
+  transform-origin: left;
+}
+
+/* ── HERO ── */
+.hero {
+  padding: 3.5rem 2.5rem 3rem;
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 3rem;
+  border-bottom: 1px solid var(--border);
+  animation: fadeUp 0.8s ease 0.2s both;
+}
+.hero-eyebrow {
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero-eyebrow::before { content:''; display:block; width:20px; height:1px; background:var(--gold); }
+.hero-title {
+  font-family: 'EB Garamond', serif;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 400;
+  line-height: 1.12;
+  color: var(--navy);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.5rem;
+}
+.hero-title em { font-style: italic; color: var(--gold); }
+.hero-sub {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  max-width: 480px;
+  font-weight: 300;
+}
+
+/* ── PERIOD CARD ── */
+.period-card {
+  background: var(--navy);
+  border-radius: 4px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  min-width: 160px;
+  position: relative;
+  overflow: hidden;
+}
+.period-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-light));
+}
+.period-month {
+  font-family: 'EB Garamond', serif;
+  font-size: 2rem;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.period-year { font-size: 0.7rem; color: rgba(255,255,255,0.45); letter-spacing: 0.1em; }
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.live-badge::before {
+  content:'';
+  width:6px; height:6px;
+  border-radius:50%;
+  background:#2D7A4F;
+  animation: pulse 2.5s infinite;
+}
+
+/* ── STRIP ── */
+.strip {
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--border);
+  padding: 2rem 2.5rem;
+}
+.strip-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ── OBJECTIVE ── */
+.obj-block {}
+.block-tag {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.block-tag::before { content:''; display:block; width:12px; height:1px; background:var(--gold); }
+.obj-text {
+  font-family: 'EB Garamond', serif;
+  font-size: 0.98rem;
+  font-style: italic;
+  color: var(--gray-800);
+  line-height: 1.65;
+}
+.obj-text strong { font-style: normal; font-weight: 500; color: var(--navy); }
+
+/* ── PROGRESS ── */
+.progress-block {}
+.progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+.progress-title { font-size: 0.75rem; font-weight: 500; color: var(--gray-800); }
+.progress-pct {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--green);
+}
+.progress-track {
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #1A6B3C, #2D9E60);
+  width: 0%;
+  transition: width 1.4s cubic-bezier(0.4,0,0.2,1);
+}
+.progress-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  color: var(--gray-600);
+}
+.leg-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+
+/* ── COUNTDOWN ── */
+.countdown-block {}
+.countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  margin-top: 0.25rem;
+}
+.cd-cell {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+.cd-num {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--navy);
+  animation: countUp 0.6s ease both;
+}
+.cd-lbl { font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-400); margin-top: 3px; }
+.cd-cell.urgent .cd-num { color: #C0392B; }
+.cd-cell.warn   .cd-num { color: var(--amber); }
+
+/* ── RESPONSIBLE ── */
+.responsible-band {
+  border-bottom: 1px solid var(--border);
+  padding: 1.5rem 2.5rem;
+  background: #fff;
+}
+.responsible-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.resp-tag {
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+.resp-people {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.resp-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.resp-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #D4AF6A;
+  font-size: 11px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: 'DM Sans', sans-serif;
+}
+.resp-name { font-size: 0.82rem; font-weight: 500; color: var(--gray-800); line-height: 1.2; }
+.resp-role { font-size: 0.65rem; color: var(--gray-400); }
+.resp-divider { width:1px; height:28px; background:var(--border); }
+
+/* ── DASHBOARD ── */
+.dashboard-section {
+  padding: 2rem 2.5rem 3rem;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+.ds-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.ds-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ds-label::after { content:''; display:block; width:32px; height:1px; background:var(--border); }
+.ds-link {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+.ds-link:hover { border-bottom-color: var(--gold); }
+
+.frame-wrap {
+  position: relative;
+  width: 100%;
+  padding-top: 58%;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--gray-50);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s ease;
+}
+.frame-wrap:hover { box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 12px 36px rgba(0,0,0,0.09); }
+.frame-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:none; display:block; }
+
+.corner { position:absolute; width:14px; height:14px; border-color:var(--gold-light); border-style:solid; z-index:2; pointer-events:none; }
+.corner.tl { top:0; left:0; border-width:1px 0 0 1px; }
+.corner.tr { top:0; right:0; border-width:1px 1px 0 0; }
+.corner.bl { bottom:0; left:0; border-width:0 0 1px 1px; }
+.corner.br { bottom:0; right:0; border-width:0 1px 1px 0; }
+
+/* ── FOOTER ── */
+.footer {
+  background: var(--navy);
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.footer-left {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.07em;
+  line-height: 1.8;
+}
+.footer-left strong { color: rgba(255,255,255,0.65); font-weight: 400; }
+.confidential {
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.12);
+  padding: 0.25rem 0.7rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 820px) {
+  .hero { grid-template-columns: 1fr; gap: 1.5rem; }
+  .period-card { display: inline-flex; gap: 1rem; align-items: center; padding: 1rem 1.5rem; }
+  .strip-inner { grid-template-columns: 1fr; }
+  .topbar, .strip, .responsible-band, .dashboard-section, .footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .hero { padding: 2rem 1.25rem; }
+  .frame-wrap { padding-top: 75%; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo">Inversiones Bolívar</div>
+  <div class="topbar-right">
+    Dirección Financiera
+    <span id="clock"></span>
+  </div>
+</div>
+<div class="gold-bar"></div>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">Reporte ejecutivo</div>
+    <h1 class="hero-title">Avance de <em>cierre contable</em><br>mensual</h1>
+    <p class="hero-sub">Seguimiento en tiempo real del proceso de cierre financiero mensual de Inversiones Bolívar.</p>
+  </div>
+  <div class="period-card">
+    <div class="period-month" id="mes"></div>
+    <div class="period-year" id="anio"></div>
+    <div class="live-badge">En curso</div>
+  </div>
+</div>
+
+<!-- STRIP: objetivo + progreso + countdown -->
+<div class="strip">
+  <div class="strip-inner">
+
+    <div class="obj-block reveal">
+      <div class="block-tag">Objetivo del proceso</div>
+      <div class="obj-text">
+        Consolidar, verificar y validar todas las operaciones del período para garantizar la
+        <strong>integridad de los estados financieros</strong> y el cumplimiento regulatorio
+        como base para la toma de decisiones.
+      </div>
+    </div>
+
+    <div class="countdown-block reveal" style="transition-delay:0.1s">
+      <div class="block-tag">Tiempo restante</div>
+      <div class="countdown-grid">
+        <div class="cd-cell" id="cd-dias">
+          <div class="cd-num" id="cd-d">—</div>
+          <div class="cd-lbl">Días</div>
+        </div>
+        <div class="cd-cell" id="cd-horas">
+          <div class="cd-num" id="cd-h">—</div>
+          <div class="cd-lbl">Horas</div>
+        </div>
+        <div class="cd-cell" id="cd-mins">
+          <div class="cd-num" id="cd-m">—</div>
+          <div class="cd-lbl">Min</div>
+        </div>
+      </div>
+      <div style="margin-top:0.6rem;font-size:0.65rem;color:var(--gray-400)">Al cierre del mes — días hábiles</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- RESPONSIBLE -->
+<div class="responsible-band reveal">
+  <div class="responsible-inner">
+    <div class="resp-tag">Responsables</div>
+    <div class="resp-people">
+      <div class="resp-person">
+        <div class="resp-avatar">DL</div>
+        <div>
+          <div class="resp-name">Derlin De León</div>
+          <div class="resp-role">Supervisión del cierre</div>
+        </div>
+      </div>
+      <div class="resp-divider"></div>
+      <div class="resp-person">
+        <div class="resp-avatar">JV</div>
+        <div>
+          <div class="resp-name">Jacqueline Vásquez</div>
+          <div class="resp-role">Coordinación contable</div>
+        </div>
+      </div>
+      <div class="resp-divider"></div>
+      <div class="resp-person">
+        <div class="resp-avatar">JM</div>
+        <div>
+          <div class="resp-name">José L. Martínez</div>
+          <div class="resp-role">Cierre fiscal y GL</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard-section reveal">
+  <div class="ds-header">
+    <div class="ds-label">Panel interactivo Power BI</div>
+    <a class="ds-link" href="https://app.powerbi.com/view?r=eyJrIjoiYWVjNzczMzYtYjUxOC00ZTExLTkwMTItOTYyNmEyYWE4NTIzIiwidCI6IjdmZjNiMDE3LTJhNWItNDA0Mi1hMmVkLTk1NWM2ODM4ZWYyOSJ9" target="_blank">Abrir en Power BI ↗</a>
+  </div>
+  <div class="frame-wrap">
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+    <iframe
+      title="Cierre Contable Inversiones Bolívar 2026"
+      src="https://app.powerbi.com/view?r=eyJrIjoiYWVjNzczMzYtYjUxOC00ZTExLTkwMTItOTYyNmEyYWE4NTIzIiwidCI6IjdmZjNiMDE3LTJhNWItNDA0Mi1hMmVkLTk1NWM2ODM4ZWYyOSJ9"
+      allowfullscreen="true">
+    </iframe>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-left">
+    <strong>Inversiones Bolívar</strong> &nbsp;·&nbsp; Dirección Financiera<br>
+    Uso interno exclusivo &nbsp;·&nbsp; <span id="foot-date"></span>
+  </div>
+  <div class="confidential">Confidencial</div>
+</div>
+
+<script>
+  const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const days   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+
+  function updateMeta() {
+    const n = new Date();
+    document.getElementById('mes').textContent  = months[n.getMonth()];
+    document.getElementById('anio').textContent = n.getFullYear();
+    document.getElementById('clock').textContent = days[n.getDay()] + ', ' + n.getDate() + ' de ' + months[n.getMonth()];
+    document.getElementById('foot-date').textContent = n.toLocaleDateString('es-SV', { year:'numeric', month:'long', day:'numeric' });
+  }
+
+  /* countdown al último día hábil del mes */
+  function lastBusinessDay(year, month) {
+    let d = new Date(year, month + 1, 0);
+    while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
+    d.setHours(17, 0, 0, 0);
+    return d;
+  }
+
+  function updateCountdown() {
+    const now    = new Date();
+    const target = lastBusinessDay(now.getFullYear(), now.getMonth());
+    const diff   = target - now;
+
+    if (diff <= 0) {
+      document.getElementById('cd-d').textContent = '0';
+      document.getElementById('cd-h').textContent = '0';
+      document.getElementById('cd-m').textContent = '0';
+      return;
+    }
+
+    const days_left = Math.floor(diff / 86400000);
+    const hrs       = Math.floor((diff % 86400000) / 3600000);
+    const mins      = Math.floor((diff % 3600000)  / 60000);
+
+    document.getElementById('cd-d').textContent = days_left;
+    document.getElementById('cd-h').textContent = hrs;
+    document.getElementById('cd-m').textContent = mins;
+
+    const dCell = document.getElementById('cd-dias');
+    const hCell = document.getElementById('cd-horas');
+    dCell.className = 'cd-cell' + (days_left <= 2 ? ' urgent' : days_left <= 5 ? ' warn' : '');
+    hCell.className = 'cd-cell' + (days_left === 0 ? ' urgent' : '');
+  }
+
+  /* scroll reveal */
+  function checkReveal() {
+    document.querySelectorAll('.reveal').forEach(el => {
+      if (el.getBoundingClientRect().top < window.innerHeight - 60) {
+        el.classList.add('visible');
+      }
+    });
+  }
+
+  updateMeta();
+  updateCountdown();
+  checkReveal();
+
+  setInterval(updateMeta, 60000);
+  setInterval(updateCountdown, 30000);
+  window.addEventListener('scroll', checkReveal);
+</script>
+</body>
+</html>

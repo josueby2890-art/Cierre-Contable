@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cierre Contable — Inversiones Bolívar</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:       #0D1B2A;
+    --navy-soft:  #1E2F45;
+    --gold:       #8B6914;
+    --gold-light: #B8953F;
+    --gray-100:   #F7F6F4;
+    --gray-200:   #EDEBE7;
+    --gray-400:   #B0A99E;
+    --gray-600:   #6B6560;
+    --gray-800:   #2E2B28;
+    --border:     #DDD9D2;
+    --text-body:  #3A3632;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+
+  body {
+    background: #FFFFFF;
+    color: var(--text-body);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: var(--navy);
+    padding: 0.75rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .topbar-logo {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #D4AF6A;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .topbar-right {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: right;
+  }
+
+  .topbar-right span { display: block; color: rgba(255,255,255,0.65); }
+
+  .gold-rule { height: 3px; background: linear-gradient(90deg, var(--gold) 0%, var(--gold-light) 50%, transparent 100%); }
+
+  .page { max-width: 1160px; margin: 0 auto; padding: 0 2.5rem; }
+
+  .header {
+    padding: 3rem 0 2rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 2rem;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards;
+  }
+
+  .eyebrow {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before { content: ''; display: block; width: 20px; height: 1px; background: var(--gold); }
+
+  .header-title {
+    font-family: 'EB Garamond', serif;
+    font-size: clamp(1.9rem, 3vw, 2.8rem);
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+
+  .header-title em { font-style: italic; color: var(--gold); }
+
+  .period-box { text-align: right; }
+
+  .period-badge {
+    display: inline-block;
+    padding: 0.4rem 1.1rem;
+    border: 1px solid var(--border);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--navy-soft);
+    background: var(--gray-100);
+    margin-bottom: 0.4rem;
+  }
+
+  .live-dot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    font-size: 0.62rem;
+    color: var(--gray-400);
+    letter-spacing: 0.08em;
+  }
+
+  .live-dot::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #2D7A4F;
+    animation: pulse 2.5s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(45,122,79,0.4); }
+    50%       { opacity: 0.7; box-shadow: 0 0 0 4px rgba(45,122,79,0); }
+  }
+
+  .objective-band {
+    background: var(--gray-100);
+    border-bottom: 1px solid var(--border);
+    padding: 1.75rem 0;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.15s forwards;
+  }
+
+  .objective-inner {
+    max-width: 1160px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .objective-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding-top: 3px;
+    white-space: nowrap;
+  }
+
+  .objective-text {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--gray-800);
+    line-height: 1.65;
+    font-style: italic;
+  }
+
+  .objective-text strong { font-style: normal; font-weight: 500; color: var(--navy); }
+
+  .dashboard-section {
+    padding: 2rem 0 3rem;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.3s forwards;
+  }
+
+  .section-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.9rem;
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after { content: ''; display: block; width: 40px; height: 1px; background: var(--border); }
+
+  .open-link {
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s;
+  }
+
+  .open-link:hover { border-bottom-color: var(--gold); }
+
+  .frame-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 58%;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    background: var(--gray-100);
+  }
+
+  .frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; display: block; }
+
+  .corner { position: absolute; width: 14px; height: 14px; border-color: var(--gold-light); border-style: solid; z-index: 2; pointer-events: none; }
+  .corner.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+  .corner.tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+  .corner.bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+  .corner.br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+  .footer {
+    background: var(--gray-100);
+    border-top: 1px solid var(--border);
+    padding: 1.25rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-copy { font-size: 0.65rem; color: var(--gray-600); letter-spacing: 0.06em; }
+  .footer-copy strong { color: var(--gray-800); font-weight: 500; }
+
+  .confidential {
+    font-size: 0.58rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 720px) {
+    .header { grid-template-columns: 1fr; }
+    .period-box { text-align: left; }
+    .live-dot { justify-content: flex-start; }
+    .objective-inner { grid-template-columns: 1fr; gap: 0.5rem; }
+    .frame-wrap { padding-top: 75%; }
+    .topbar, .page, .footer { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">Inversiones Bolívar</div>
+  <div class="topbar-right">
+    Dirección Financiera
+    <span id="clock"></span>
+  </div>
+</div>
+<div class="gold-rule"></div>
+
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="eyebrow">Reporte ejecutivo</div>
+      <h1 class="header-title">Avance de <em>cierre contable</em> mensual</h1>
+    </div>
+    <div class="period-box">
+      <div class="period-badge" id="periodo"></div>
+      <div class="live-dot">Datos en tiempo real</div>
+    </div>
+  </div>
+</div>
+
+<div class="objective-band">
+  <div class="objective-inner">
+    <div class="objective-tag">Objetivo</div>
+    <div class="objective-text">
+      El <strong>cierre contable mensual</strong> tiene como propósito consolidar, verificar y validar
+      todas las operaciones financieras del período, asegurando que los registros contables reflejen
+      con exactitud la situación de la empresa. Este proceso garantiza la <strong>integridad de los
+      estados financieros</strong>, el cumplimiento regulatorio y provee la base para la toma de
+      decisiones estratégicas de la dirección.
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="dashboard-section">
+    <div class="section-meta">
+      <div class="section-label">Panel interactivo</div>
+      <a class="open-link" href="https://app.powerbi.com/view?r=eyJrIjoiYWVjNzczMzYtYjUxOC00ZTExLTkwMTItOTYyNmEyYWE4NTIzIiwidCI6IjdmZjNiMDE3LTJhNWItNDA0Mi1hMmVkLTk1NWM2ODM4ZWYyOSJ9" target="_blank">Abrir en Power BI ↗</a>
+    </div>
+    <div class="frame-wrap">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+      <iframe
+        title="Cierre Contable Inversiones Bolívar 2026"
+        src="https://app.powerbi.com/view?r=eyJrIjoiYWVjNzczMzYtYjUxOC00ZTExLTkwMTItOTYyNmEyYWE4NTIzIiwidCI6IjdmZjNiMDE3LTJhNWItNDA0Mi1hMmVkLTk1NWM2ODM4ZWYyOSJ9"
+        allowfullscreen="true">
+      </iframe>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-copy">
+    <strong>Inversiones Bolívar</strong> &nbsp;·&nbsp; Dirección Financiera &nbsp;·&nbsp; Uso interno exclusivo
+  </div>
+  <div class="confidential">Confidencial</div>
+</div>
+
+<script>
+  function updateMeta() {
+    const now = new Date();
+    const months = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    document.getElementById('periodo').textContent = months[now.getMonth()] + ' ' + now.getFullYear();
+    document.getElementById('clock').textContent = days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()];
+  }
+  updateMeta();
+  setInterval(updateMeta, 60000);
+</script>
+</body>
+</html>

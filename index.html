@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cierre Contable · Inversiones Bolívar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gidole&family=Arimo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --brand:#8A6D3B; --brand-dk:#67512C; --brand-lt:#A7916C;
+  --green:#00A651; --green-dk:#00803E; --green-bg:#E7F8EF;
+  --orange:#FA8D29; --orange-bg:#FFF1E2;
+  --slate:#8A97AC; --slate-bg:#F0F2F5;
+  --purple:#6C6FA0; --purple-bg:#EDEDF7;
+  --bg:#F4F6F9; --card:#FFFFFF; --border:#E3E8EF;
+  --text:#3D3F3B; --text-soft:#646569; --text-faint:#93A0B4;
+  --danger:#D64550; --danger-bg:#FCEBEC;
+  --cream:#DDD2BC;
+  --radius:14px; --radius-sm:9px;
+  --shadow: 0 1px 2px rgba(20,30,50,.04), 0 4px 16px rgba(20,30,50,.06);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Arimo', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  background:var(--bg); color:var(--text); font-size:14.5px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.section-title,.hero-text h2,.u-name,.m-name,.kpi-num,.hero-pct{font-family:'Gidole', 'Arimo', sans-serif;}
+#app{max-width:1240px; margin:0 auto; padding:0 22px 60px;}
+::selection{background:var(--green-bg); color:var(--brand-dk);}
+
+/* ---------- Banner demo ---------- */
+.demo-banner{
+  background:linear-gradient(90deg,#FFF6E8,#FFF1E2); border-bottom:1px solid #F3D8A8;
+  color:#8A5A15; font-size:12.5px; padding:8px 22px; display:flex; align-items:center; gap:8px;
+  justify-content:center; font-weight:600;
+}
+.demo-banner svg{flex:none;}
+
+/* ---------- Header ---------- */
+header.top{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:22px 0 16px; gap:16px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:center; gap:12px;}
+.brand-mark{
+  width:42px; height:42px; border-radius:11px;
+  background:linear-gradient(135deg,var(--brand),var(--brand-lt));
+  display:flex; align-items:center; justify-content:center; flex:none;
+  box-shadow:0 4px 12px rgba(138,109,59,.32);
+}
+.brand h1{font-size:17.5px; margin:0; font-weight:700; color:var(--brand-dk); letter-spacing:-.2px;}
+.brand p{margin:1px 0 0; font-size:12px; color:var(--text-faint); font-weight:600; letter-spacing:.3px; text-transform:uppercase;}
+.brand-word{font-family:'Gidole','Arimo',sans-serif; color:var(--brand); text-transform:none; letter-spacing:.2px;}
+
+.head-right{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+select.cycle-select{
+  appearance:none; -webkit-appearance:none; border:1.5px solid var(--border); background:var(--card) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="6"><path d="M1 1l4 4 4-4" stroke="%235C6B84" stroke-width="1.6" fill="none"/></svg>') no-repeat right 12px center;
+  padding:9px 32px 9px 14px; border-radius:10px; font-size:13.5px; font-weight:600; color:var(--brand-dk); cursor:pointer;
+}
+select.cycle-select:focus{outline:2px solid var(--green); outline-offset:1px;}
+
+.user-chip{
+  display:flex; align-items:center; gap:9px; background:var(--card); border:1.5px solid var(--border);
+  padding:6px 14px 6px 6px; border-radius:100px; cursor:default;
+}
+.avatar{
+  width:30px; height:30px; border-radius:50%; background:var(--brand); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700; flex:none;
+}
+.user-chip .u-name{font-size:13px; font-weight:600; color:var(--text); line-height:1.15;}
+.user-chip .u-role{font-size:10.5px; color:var(--text-faint); font-weight:600; text-transform:uppercase; letter-spacing:.3px;}
+.admin-tag{background:var(--orange-bg); color:#95560D; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:100px; letter-spacing:.4px; text-transform:uppercase; margin-left:2px;}
+.viewer-tag{background:var(--slate-bg); color:#5B6779; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:100px; letter-spacing:.4px; text-transform:uppercase; margin-left:2px;}
+
+/* ---------- Nav tabs ---------- */
+nav.tabs{display:flex; gap:4px; border-bottom:1.5px solid var(--border); margin-bottom:26px;}
+nav.tabs button{
+  background:none; border:none; padding:12px 6px; margin-right:22px; font-size:14px; font-weight:650;
+  color:var(--text-faint); cursor:pointer; position:relative; top:1.5px; font-family:inherit;
+}
+nav.tabs button.active{color:var(--brand-dk); border-bottom:2.5px solid var(--green);}
+nav.tabs button:hover:not(.active){color:var(--text-soft);}
+
+/* ---------- Cards / generic ---------- */
+.card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);}
+.section-title{font-size:15.5px; font-weight:700; color:var(--brand-dk); margin:0 0 3px; letter-spacing:-.1px;}
+.section-sub{font-size:12.5px; color:var(--text-faint); margin:0 0 16px;}
+.btn{
+  display:inline-flex; align-items:center; gap:7px; border:none; border-radius:9px; padding:9px 16px;
+  font-size:13px; font-weight:650; cursor:pointer; font-family:inherit; transition:transform .08s ease;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--brand); color:#fff;}
+.btn-primary:hover{background:var(--brand-dk);}
+.btn-ghost{background:var(--card); color:var(--brand-dk); border:1.5px solid var(--border);}
+.btn-ghost:hover{border-color:var(--brand-lt); background:#FAFBFD;}
+.btn-green{background:var(--green); color:#fff;}
+.btn-green:hover{background:var(--green-dk);}
+.btn-sm{padding:6px 12px; font-size:12px; border-radius:7px;}
+
+/* ---------- Pills / estado ---------- */
+.pill{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:700; padding:4px 10px 4px 8px; border-radius:100px; white-space:nowrap;}
+.pill .dot{width:6px; height:6px; border-radius:50%;}
+.pill.Completado{background:var(--green-bg); color:var(--green-dk);} .pill.Completado .dot{background:var(--green);}
+.pill.Enproceso{background:var(--orange-bg); color:#95560D;} .pill.Enproceso .dot{background:var(--orange);}
+.pill.Noiniciado{background:var(--slate-bg); color:#5B6779;} .pill.Noiniciado .dot{background:var(--slate);}
+.pill.Noaplica{background:var(--purple-bg); color:#4E4F86;} .pill.Noaplica .dot{background:var(--purple);}
+
+select.estado-select{
+  border:1.5px solid var(--border); border-radius:8px; padding:5px 26px 5px 10px; font-size:12px; font-weight:700;
+  font-family:inherit; cursor:pointer; appearance:none; -webkit-appearance:none;
+  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="9" height="6"><path d="M1 1l3.5 3.5L8 1" stroke="%235C6B84" stroke-width="1.5" fill="none"/></svg>') no-repeat right 9px center;
+}
+select.estado-select.Completado{background-color:var(--green-bg); color:var(--green-dk); border-color:#BFE9D2;}
+select.estado-select.Enproceso{background-color:var(--orange-bg); color:#95560D; border-color:#F6D6AA;}
+select.estado-select.Noiniciado{background-color:var(--slate-bg); color:#5B6779; border-color:var(--border);}
+select.estado-select.Noaplica{background-color:var(--purple-bg); color:#4E4F86; border-color:#D6D6EF;}
+
+/* ---------- Progress bar ---------- */
+.pbar-track{height:7px; border-radius:100px; background:var(--slate-bg); overflow:hidden; position:relative;}
+.pbar-fill{height:100%; border-radius:100px; background:linear-gradient(90deg,var(--green),#1EC876); transition:width .4s ease;}
+
+/* ---------- Stamp (signature element) ---------- */
+.stamp{width:52px; height:52px; opacity:.9; mix-blend-mode:multiply; transform:rotate(-9deg); flex:none;}
+
+/* ---------- Mis tareas ---------- */
+.mt-head{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap; margin-bottom:22px;}
+.mt-progress-card{
+  background:linear-gradient(120deg,var(--brand),var(--brand-lt)); border-radius:var(--radius); padding:20px 24px;
+  color:#fff; display:flex; align-items:center; gap:22px; flex-wrap:wrap; position:relative; overflow:hidden;
+}
+.mt-progress-card::after{content:''; position:absolute; right:-40px; top:-40px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.05);}
+.mt-progress-num{font-size:34px; font-weight:800; letter-spacing:-1px;}
+.mt-progress-label{font-size:12.5px; opacity:.8; font-weight:600;}
+.mt-progress-card .pbar-track{background:rgba(255,255,255,.18); flex:1; min-width:140px;}
+.mt-progress-card .pbar-fill{background:#fff;}
+
+.modulo-group{margin-bottom:16px;}
+.modulo-head{display:flex; align-items:center; gap:10px; padding:13px 4px 9px;}
+.modulo-head h3{font-size:14px; margin:0; font-weight:700; color:var(--brand-dk); flex:1;}
+.modulo-head .m-count{font-size:11.5px; color:var(--text-faint); font-weight:600;}
+.task-row{
+  display:grid; grid-template-columns:1fr auto auto; gap:14px; align-items:center;
+  padding:13px 16px; border-bottom:1px solid var(--border);
+}
+.task-row:last-child{border-bottom:none;}
+.task-title{font-size:13.5px; font-weight:600; color:var(--text);}
+.task-meta{font-size:11.5px; color:var(--text-faint); margin-top:2px;}
+.task-meta.overdue{color:var(--danger); font-weight:700;}
+
+/* ---------- Dashboard ---------- */
+.kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px;}
+.kpi-card{padding:18px 20px; display:flex; align-items:center; gap:14px;}
+.kpi-icon{width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; flex:none;}
+.kpi-icon.i-brand{background:var(--slate-bg); color:var(--brand);}
+.kpi-icon.i-green{background:var(--green-bg); color:var(--green-dk);}
+.kpi-icon.i-purple{background:var(--purple-bg); color:var(--purple);}
+.kpi-icon.i-danger{background:var(--danger-bg); color:var(--danger);}
+.kpi-num{font-size:27px; font-weight:800; color:var(--brand-dk); letter-spacing:-.5px;}
+.kpi-label{font-size:12px; color:var(--text-faint); font-weight:650; margin-top:2px;}
+.kpi-card.accent .kpi-num{color:var(--green-dk);}
+.kpi-card.warn .kpi-num{color:var(--danger);}
+
+/* ---------- Dashboard hero ---------- */
+.dash-hero{
+  display:flex; align-items:center; gap:26px; padding:24px 28px; margin-bottom:18px;
+  background:linear-gradient(135deg,var(--brand),var(--brand-lt)); border-radius:var(--radius); color:#fff;
+  box-shadow:var(--shadow); flex-wrap:wrap;
+}
+.hero-ring{position:relative; width:104px; height:104px; flex:none;}
+.hero-ring svg{width:100%; height:100%; transform:rotate(-90deg); display:block;}
+.hero-ring .ring-track{fill:none; stroke:rgba(255,255,255,.2); stroke-width:9;}
+.hero-ring .ring-fill{fill:none; stroke:#fff; stroke-width:9; stroke-linecap:round; transition:stroke-dasharray .6s ease;}
+.hero-ring.done .ring-fill{stroke:#8CF5C4;}
+.hero-ring-label{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.hero-pct{font-size:23px; font-weight:800; line-height:1;}
+.hero-pct-sub{font-size:9.5px; color:rgba(255,255,255,.75); text-transform:uppercase; letter-spacing:.4px; margin-top:2px;}
+.hero-text{flex:1; min-width:200px;}
+.hero-text h2{margin:0 0 4px; font-size:18px;}
+.hero-text p{margin:0; font-size:12.8px; color:rgba(255,255,255,.85);}
+.hero-stamp{display:inline-block; margin-top:9px; background:rgba(255,255,255,.18); border-radius:100px; padding:5px 14px; font-size:12px; font-weight:700;}
+
+.donut-wrap{position:relative; width:148px; height:148px; margin:6px auto 2px;}
+.donut-svg{width:100%; height:100%; transform:rotate(-90deg); display:block;}
+.donut-svg circle{transition:stroke-dasharray .5s ease;}
+.donut-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.donut-center-pct{font-size:22px; font-weight:800; color:var(--brand-dk); line-height:1;}
+.donut-center-sub{font-size:10px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.3px; margin-top:2px;}
+.donut-legend{display:flex; flex-wrap:wrap; gap:8px 16px; justify-content:center; margin-top:14px; font-size:12px; color:var(--text-soft);}
+.legend-dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:middle;}
+
+.p-avatar{width:24px; height:24px; border-radius:50%; background:var(--brand); color:#fff; font-size:10px; font-weight:700;
+  display:inline-flex; align-items:center; justify-content:center; margin-right:8px; flex:none; vertical-align:middle;}
+
+/* ---------- Histórico ---------- */
+.hist-bars{display:flex; align-items:flex-end; gap:16px; padding:14px 4px 0; overflow-x:auto;}
+.hist-bar-col{display:flex; flex-direction:column; align-items:center; flex:none; width:52px;}
+.hist-bar-pct{font-size:12px; font-weight:800; color:var(--text); margin-bottom:5px;}
+.hist-bar-track{width:100%; height:120px; display:flex; align-items:flex-end; background:var(--slate-bg); border-radius:6px; overflow:hidden;}
+.hist-bar-fill{width:100%; transition:height .5s ease;}
+.hist-bar-label{font-size:10.5px; color:var(--text-faint); margin-top:7px; text-align:center; text-transform:capitalize; line-height:1.35;}
+
+.heat-table{width:100%; border-collapse:separate; border-spacing:4px 3px; font-size:12px;}
+.heat-table th{padding:4px 8px; text-align:center; color:var(--text-faint); font-size:10px; text-transform:uppercase; font-weight:700; letter-spacing:.2px;}
+.heat-modname{padding:8px 12px; font-size:12.3px; font-weight:600; color:var(--text); white-space:nowrap; text-align:left;}
+.heat-cell{padding:8px 6px; text-align:center; font-weight:700; border-radius:7px; min-width:48px;}
+.heat-na{padding:8px 6px; text-align:center; color:var(--text-faint);}
+
+.dash-grid{display:grid; grid-template-columns:1.15fr .85fr; gap:16px; margin-bottom:16px;}
+.chart-card{padding:20px 22px;}
+.chart-card canvas{max-height:230px;}
+
+.mod-bar-row{display:flex; align-items:center; gap:10px; padding:9px 6px; cursor:pointer; border-radius:8px; transition:background .15s; list-style:none;}
+.mod-bar-row::-webkit-details-marker{display:none;}
+.mod-bar-row:hover{background:var(--slate-bg);}
+.mod-bar-row .chevron{flex:none; color:var(--text-faint); transition:transform .2s ease;}
+details[open] > .mod-bar-row .chevron{transform:rotate(90deg); color:var(--brand);}
+.mod-bar-row .mod-bar-body{flex:1; min-width:0;}
+.mod-bar-row .m-name{font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px;}
+.mod-bar-row .m-pct{font-size:12px; font-weight:700; color:var(--text-soft); text-align:right; flex:none; white-space:nowrap;}
+.stack-track{height:10px; border-radius:100px; background:var(--slate-bg); display:flex; overflow:hidden;}
+details.drill{border-bottom:1px solid var(--border);}
+details.drill:last-child{border-bottom:none;}
+.drill-body{padding:2px 6px 12px 33px; animation:drillOpen .18s ease;}
+@keyframes drillOpen{from{opacity:0;} to{opacity:1;}}
+.drill-row{display:flex; align-items:center; gap:10px; padding:6px 0; font-size:12px; border-top:1px dashed var(--border);}
+.drill-row:first-child{border-top:none;}
+.drill-name{flex:1; color:var(--text); font-weight:500; min-width:0;}
+.drill-person{color:var(--text-faint); white-space:nowrap; flex:none;}
+.mini-bar{width:80px; height:6px; border-radius:100px; background:var(--slate-bg); overflow:hidden; display:inline-block;}
+.mini-bar > div{height:100%; background:var(--green);}
+.stack-seg{height:100%;}
+
+.overdue-list{padding:18px 20px;}
+.overdue-item{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); font-size:12.5px;}
+.overdue-item:last-child{border-bottom:none;}
+.overdue-item .oi-days{color:var(--danger); font-weight:800; font-size:11.5px; white-space:nowrap;}
+
+/* ---------- Panel de control ---------- */
+.locked-box{padding:60px 30px; text-align:center; color:var(--text-faint);}
+.locked-box svg{margin-bottom:14px;}
+.locked-box h3{color:var(--brand-dk); font-size:16px; margin:0 0 6px;}
+.locked-box p{font-size:13px; max-width:340px; margin:0 auto;}
+
+table.panel{width:100%; border-collapse:collapse; font-size:12.6px;}
+table.panel th{text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.3px; color:var(--text-faint); font-weight:700; padding:9px 10px; border-bottom:1.5px solid var(--border); position:sticky; top:0; background:var(--card);}
+table.panel td{padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:middle;}
+table.panel input[type=date]{border:1.5px solid var(--border); border-radius:7px; padding:5px 7px; font-size:12px; font-family:inherit; width:128px;}
+table.panel input[type=date]:focus{outline:2px solid var(--green); outline-offset:0;}
+.panel-scroll{max-height:560px; overflow:auto; border:1px solid var(--border); border-radius:var(--radius-sm);}
+.row-saved{background:var(--green-bg) !important; transition:background 1.2s ease;}
+
+/* ---------- Toast ---------- */
+#toast-wrap{position:fixed; bottom:22px; right:22px; z-index:999; display:flex; flex-direction:column; gap:10px; align-items:flex-end;}
+.toast{
+  background:var(--brand-dk); color:#fff; padding:14px 18px; border-radius:12px; font-size:13px; font-weight:600;
+  box-shadow:0 10px 30px rgba(0,0,0,.25); display:flex; align-items:center; gap:10px; max-width:340px;
+  animation:toast-in .3s ease;
+}
+.toast.success{background:linear-gradient(120deg,var(--green-dk),var(--green));}
+@keyframes toast-in{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);}}
+
+.empty-state{padding:50px 20px; text-align:center; color:var(--text-faint); font-size:13px;}
+
+footer.foot{text-align:center; padding:30px 0 10px; font-size:11.5px; color:var(--text-faint);}
+
+@media (max-width:880px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .dash-grid{grid-template-columns:1fr;}
+  .task-row{grid-template-columns:1fr; align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<div id="demo-banner-slot"></div>
+
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">
+        <img src="data:image/png;base64,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" alt="Bolívar" width="26" style="height:auto;display:block;">
+      </div>
+      <div>
+        <h1>Cierre Contable</h1>
+        <p>Dirección de Finanzas e Inversiones · <span class="brand-word">Inversiones Bolívar</span></p>
+      </div>
+    </div>
+    <div class="head-right" id="head-right"></div>
+  </header>
+
+  <nav class="tabs" id="tabs"></nav>
+
+  <main id="view"></main>
+
+  <footer class="foot">Inversiones Bolívar · Cierre Contable interno · datos en <strong>sites/DIR_FinanzaseInversiones/Lists/Tickets</strong></footer>
+</div>
+
+<div id="toast-wrap"></div>
+
+<script>
+/* =========================================================================
+   CONFIGURACIÓN — Armando: ajusta esto antes de publicar
+   ========================================================================= */
+
+// Ruta de la lista de SharePoint donde vive (o vivirá) esta data
+const SITE_PATH = "sites/DIR_FinanzaseInversiones";
+const LIST_NAME = "Tickets"; // según "Ruta de acceso" de tus datos originales
+
+// Mapeo Nombre (tal como aparece en "Assigned to") -> correo/UPN de Microsoft 365.
+// ⚠️ PLACEHOLDER: reemplaza estos correos por los reales de tu tenant proyectosdevida.com
+// antes de publicar — de esto depende que "Mis tareas" y el acceso de Derlin funcionen.
+const EMPLEADOS = {
+  "Derlin De León":       "ddeleon@proyectosdevida.com",
+  "Kenia Palacios":       "kpalacios@proyectosdevida.com",
+  "José Luis Martinez":   "jmartinez@proyectosdevida.com",
+  "Alejandra Martinez":   "facturacion@plazamerliot.com.sv",
+  "Patricia Padilla":     "ppadilla@proyectosdevida.com",
+  "Elmer González":       "elmer.gonzalez@proyectosdevida.com",
+  "Jacqueline Vásquez":   "jvasquez@proyectosdevida.com",
+  "Guadalupe Reyes":      "greyes@proyectosdevida.com",
+  "Steve Mancia":         "steve.mancia@proyectosdevida.com",
+  "Inmer Torres":         "itorres@proyectosdevida.com",
+  "Claudia Hernandez":    "chernandez@proyectosdevida.com",
+  "Cobros":               "gestiondecobros@aisa.com.sv",
+  "Gestión de Cobros":    "gestiondecobros@aisa.com.sv",
+  "Miguel Marroquín":     "mmarroquin@proyectosdevida.com",
+  "Eduardo Lobo":         "elobo@proyectosdevida.com",
+  "Valeria García":       "vgarcia@proyectosdevida.com"
+};
+
+// Único(s) correo(s) con acceso al Panel de Control (edición de fechas)
+const ADMIN_EMAILS = ["ddeleon@proyectosdevida.com"];
+// Ven Dashboard e Histórico solamente — sin Mis Tareas (no tienen tareas propias) ni Panel de Control.
+const VIEWER_EMAILS = ["elobo@proyectosdevida.com", "mmarroquin@proyectosdevida.com", "vgarcia@proyectosdevida.com"];
+
+// Endpoints HTTP de Power Automate (capa de API hacia SharePoint).
+// Mientras digan "REEMPLAZAR", la app funciona en MODO DEMO con datos en memoria.
+// Endpoints HTTP de Power Automate — apuntan a la lista chica y dedicada
+// Cierre_Estado (no a la lista Tickets). Los 4 flujos ya están conectados.
+const API = {
+  getEstadoCiclo:      "https://default7ff3b0172a5b4042a2ed955c6838ef.29.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/c29b4725b5df48d096c70e622f498d82/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=Q_keQB_W7fx4hZ_r0g6f7B4WDnL0FeW5yAxFLzMXmO0",
+  updateEstado:        "https://default7ff3b0172a5b4042a2ed955c6838ef.29.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/5b8b856a1891405b948f43d9488e97c9/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=uDuL7T6qg4uG-a-2KrZSj-lksJLq5o644ZZTu8b5zlQ",
+  updateFechas:         "https://default7ff3b0172a5b4042a2ed955c6838ef.29.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/1430a17681924fc69c4a71ea352a1098/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=_5a8S-nQF0LvDXylQ_kjaeUhei02fZRnnLaDMvuPzTQ",
+  notificarCompletado: "https://default7ff3b0172a5b4042a2ed955c6838ef.29.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/538d1efdeecf4fbdaf0293d75a87cc26/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=muea0TdSf_11aEsIQjk1qFkSGBQqplRJvr32iK6l8Pk"
+};
+
+/* =========================================================================
+   HISTÓRICO — marzo a junio 2026, ya cerrados. Datos fijos, de solo lectura.
+   ========================================================================= */
+const SEED_HISTORICO = [{"id":1,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Registros finales de gastos y cxp","asignado":"Kenia Palacios","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":2,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Contabilización de pagos","asignado":"Kenia Palacios","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":3,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de tarjeta de crédito y liquidación de gastos","asignado":"Kenia Palacios","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":4,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Antiguedad de cuentas por pagar","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":5,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Conciliación de anticipos a proveedores y gestión de liquidaciones de anticipos","asignado":"Kenia Palacios","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":6,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-03-01","fechaLimite":"2026-03-03","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":7,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Contabilización de cobros","asignado":"Cobros","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":8,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Obtención de información ventas","asignado":"Cobros","fechaInicio":"2026-03-01","fechaLimite":"2026-03-03","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":9,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Facturación de ingresos por servicios a compañías relacionadas","asignado":"Alejandra Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":10,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Antigüedad de cuentas por cobrar","asignado":"Cobros","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":11,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Informe de cuentas incobrables","asignado":"Cobros","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":12,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Gestión de cobro de retenciones bancarias","asignado":"Cobros","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":13,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Realizar composición de Depósitos de clientes por alquiler","asignado":"Alejandra Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":14,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-03-01","fechaLimite":"2026-03-04","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":15,"titulo":"Cierre de módulo Afiliadas","tarea":"Confirmar liquidación de TC","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":16,"titulo":"Cierre de módulo Afiliadas","tarea":"Generar reportes auxiliares de todas las compañías","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":17,"titulo":"Cierre de módulo Afiliadas","tarea":"Elaborar matriz de afiliadas e identificar diferencias","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":18,"titulo":"Cierre de módulo Afiliadas","tarea":"Depurar las diferencias identificadas y proponer cruce de saldos","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":19,"titulo":"Cierre de módulo Afiliadas","tarea":"Elaborar matriz de conciliación de saldos intercompany","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":20,"titulo":"Cierre de módulo Afiliadas","tarea":"Cierre del módulo afiliadas","asignado":"Derlin De León","fechaInicio":"2026-03-01","fechaLimite":"2026-03-04","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":21,"titulo":"Ingresos de proyectos y depósitos","tarea":"Confirmar el ingreso de las reservas de clientes","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":22,"titulo":"Ingresos de proyectos y depósitos","tarea":"Obtener las CV efectuadas en el mes cuando hay escrituraciones","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":23,"titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar el reporte de depósitos de clientes vs contabilidad","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":24,"titulo":"Ingresos de proyectos y depósitos","tarea":"Contabilizar en tu totalidad las CV en la venta de apartamentos","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-04","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":25,"titulo":"Ingresos de proyectos y depósitos","tarea":"Liquidar los Depósitos de Clientes cuentas por cobrar","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-03","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":26,"titulo":"Ingresos de proyectos y depósitos","tarea":"Elaborar grupos de desgrave para enviar al banco","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":27,"titulo":"Ingresos de proyectos y depósitos","tarea":"Enviar reporte de retenciones bancarias a cobros","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"No iniciado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":28,"titulo":"Cierre de Nómina","tarea":"Provisión de vacaciones, aguinaldos y bonificaciones","asignado":"Patricia Padilla","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":29,"titulo":"Cierre de Nómina","tarea":"Provisión de cuotas patronales de ISSS, AFP e INSAFORP con base a planillas del mes","asignado":"Patricia Padilla","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":30,"titulo":"Cierre de Nómina","tarea":"Contabilización de planillas de proyectos","asignado":"Patricia Padilla","fechaInicio":"2026-03-01","fechaLimite":"2026-03-04","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":31,"titulo":"Cierre de Nómina","tarea":"Contabilización de planillas","asignado":"Patricia Padilla","fechaInicio":"2026-03-01","fechaLimite":"2026-03-04","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":32,"titulo":"Cierre de Nómina","tarea":"Liquidación de cuentas de planillas pasivo","asignado":"Patricia Padilla","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":33,"titulo":"Cierre de Nómina","tarea":"Contabilización de cuentas por cobrar a socios","asignado":"Patricia Padilla","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":34,"titulo":"Cierre de GL","tarea":"Conciliación de activos fijos e intangibles. Depreciaciones y amortizaciones del mes","asignado":"Gabriela Portillo","fechaInicio":"2026-03-01","fechaLimite":"2026-03-03","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":35,"titulo":"Cierre de GL","tarea":"Gestión de conciliaciones bancarias","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":36,"titulo":"Cierre de GL","tarea":"Revisión e integración de costos proyectos 118 y 214","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":37,"titulo":"Cierre de GL","tarea":"Revisión e integración de Inversiones","asignado":"Derlin De León","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":38,"titulo":"Cierre de GL","tarea":"Movimientos del patrimonio","asignado":"Derlin De León","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":39,"titulo":"Cierre de GL","tarea":"Contabilización de préstamos capital e intereses","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":40,"titulo":"Cierre de GL","tarea":"Liquidación de impuestos de IVA, Pago a cta y retenciones","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":41,"titulo":"Cierre de GL","tarea":"Liquidación y conciliación de Fondos rotativos","asignado":"Kenia Palacios","fechaInicio":"2026-03-01","fechaLimite":"2026-03-15","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":42,"titulo":"Cierre de GL","tarea":"Revisión de cuentas por cobrar","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-06","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":43,"titulo":"Cierre de GL","tarea":"Revisión de balanza de comprobación al cierre mensual y composiciones de cuentas","asignado":"Derlin De León","fechaInicio":"2026-03-01","fechaLimite":"2026-03-05","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":44,"titulo":"Cierre de GL","tarea":"Elaboración de EEFF mensuales individuales","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":45,"titulo":"Cierre fiscal","tarea":"Consolidaciones de retenciones del ISR, permanentes, eventuales y otras","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-07","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":46,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de ventas: a contribuyentes y consumidor final","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-07","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":47,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de compras","asignado":"José Luis Martinez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-07","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":48,"titulo":"Cierre fiscal","tarea":"Informe 971, Balance y Estados de Resultados para las empresas que no aplican a Informe Fiscal (anual)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":49,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de IVA (F07)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":50,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de pago a cuenta y retenciones Mensuales (F14)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-09","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":51,"titulo":"Cierre fiscal","tarea":"Generación de mandamientos mensuales de ingresos por retenciones del 13 porciento de IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":52,"titulo":"Cierre fiscal","tarea":"Elaboración de informe mensual de retención, percepción o anticipo a cuenta de IVA (F930)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":53,"titulo":"Cierre fiscal","tarea":"Conciliación de ingresos (contabilidad, libros de IVA y declaraciones de IVA, pago a cuenta y DATA de Base)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":54,"titulo":"Cierre fiscal","tarea":"Elaboración de cuadro de proporcionalidad del IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":55,"titulo":"Cierre fiscal","tarea":"Elaboración de las plantillas para los informes Fiscales de las empresas que aplican (anual)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"En proceso","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":56,"titulo":"Cierre fiscal","tarea":"Elaboración de Informe de Proveedores, Clientes, Acreedores y Deudores (F987) Semestral","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":57,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de inventario de productos (F983) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":58,"titulo":"Cierre fiscal","tarea":"Elaboración de informe anual de retención del ISR (F910)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":59,"titulo":"Cierre fiscal","tarea":"Elaboración de informe sobre distribución y capitalización de utilidades (F915), Mensual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":60,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de actualización de dirección para recibir notificaciones (F211) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-02","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":61,"titulo":"Cierre fiscal","tarea":"Declaración del impuesto sobre la renta y contribución especial (F11), Anuales","asignado":"Jacqueline Vásquez","fechaInicio":"2026-03-01","fechaLimite":"2026-03-08","estado":"Completado","ciclo":"2026-03","cicloLabel":"Marzo 2026"},{"id":62,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Registros finales de gastos y cxp","asignado":"Kenia Palacios","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":63,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Contabilización de pagos","asignado":"Kenia Palacios","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":64,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de tarjeta de crédito y liquidación de gastos","asignado":"Kenia Palacios","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":65,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Antiguedad de cuentas por pagar","asignado":"Kenia Palacios","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":66,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Conciliación de anticipos a proveedores y gestión de liquidaciones de anticipos","asignado":"Kenia Palacios","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":67,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Cierre del módulo","asignado":"Kenia Palacios","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":68,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Contabilización de cobros","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":69,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Obtención de información ventas","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":70,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Facturación de ingresos por servicios a compañías relacionadas","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":71,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Antigüedad de cuentas por cobrar","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":72,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Informe de cuentas incobrables","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":73,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Gestión de cobro de retenciones bancarias","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":74,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Realizar composición de Depósitos de clientes por alquiler","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":75,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Cierre del módulo","asignado":"Cobros","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":76,"titulo":"Cierre de módulo Afiliadas","tarea":"Confirmar liquidación de TC y facturación afiliadas","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":77,"titulo":"Cierre de módulo Afiliadas","tarea":"Generar reportes auxiliares de todas las compañías","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":78,"titulo":"Cierre de módulo Afiliadas","tarea":"Elaborar matriz de afiliadas e identificar diferencias","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":79,"titulo":"Cierre de módulo Afiliadas","tarea":"Subsanar las diferencias identificadas","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":80,"titulo":"Cierre de módulo Afiliadas","tarea":"Generar reportes corregidos y elaborar matriz final","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":81,"titulo":"Cierre de módulo Afiliadas","tarea":"Cierre del módulo afiliadas","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":82,"titulo":"Ingresos de proyectos y depósitos","tarea":"Confirmar el ingreso de las reservas de clientes","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":83,"titulo":"Ingresos de proyectos y depósitos","tarea":"Obtener las CV efectuadas en el mes cuando hay escrituraciones","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":84,"titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar el reporte de depósitos de clientes vs contabilidad","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":85,"titulo":"Ingresos de proyectos y depósitos","tarea":"Contabilizar en tu totalidad las CV en la venta de apartamentos","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":86,"titulo":"Ingresos de proyectos y depósitos","tarea":"Liquidar los Depósitos de Clientes cuentas por cobrar","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":87,"titulo":"Ingresos de proyectos y depósitos","tarea":"Elaborar grupos de desgrave para enviar al banco","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":88,"titulo":"Ingresos de proyectos y depósitos","tarea":"Enviar reporte de retenciones bancarias a cobros","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":89,"titulo":"Cierre de Nómina","tarea":"Provisión de vacaciones, aguinaldos y bonificaciones","asignado":"Patricia Padilla","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":90,"titulo":"Cierre de Nómina","tarea":"Provisión de cuotas patronales de ISSS, AFP e INSAFORP con base a planillas del mes","asignado":"Patricia Padilla","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":91,"titulo":"Cierre de Nómina","tarea":"Contabilización de planillas de proyectos","asignado":"Patricia Padilla","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":92,"titulo":"Cierre de Nómina","tarea":"Contabilización de planillas","asignado":"Patricia Padilla","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":93,"titulo":"Cierre de Nómina","tarea":"Liquidación de cuentas de planillas pasivo","asignado":"Patricia Padilla","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":94,"titulo":"Cierre de Nómina","tarea":"Contabilización de cuentas por cobrar a socios","asignado":"Patricia Padilla","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":95,"titulo":"Cierre de GL","tarea":"Conciliación de activos fijos e intangibles. Depreciaciones y amortizaciones del mes","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":96,"titulo":"Cierre de GL","tarea":"Gestión de conciliaciones bancarias","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":97,"titulo":"Cierre de GL","tarea":"Revisión e integración de costos proyectos 118 y 214","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":98,"titulo":"Cierre de GL","tarea":"Revisión e integración de Inversiones","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":99,"titulo":"Cierre de GL","tarea":"Movimientos del patrimonio","asignado":"Derlin De León","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":100,"titulo":"Cierre de GL","tarea":"Contabilización de préstamos capital e intereses","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":101,"titulo":"Cierre de GL","tarea":"Liquidación de impuestos de IVA, Pago a cta y retenciones","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":102,"titulo":"Cierre de GL","tarea":"Liquidación y conciliación de Fondos rotativos","asignado":"Kenia Palacios","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":103,"titulo":"Cierre de GL","tarea":"Revisión de cuentas por cobrar","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":104,"titulo":"Cierre de GL","tarea":"Revisión de balanza de comprobación al cierre mensual y composiciones de cuentas","asignado":"Derlin De León","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":105,"titulo":"Cierre de GL","tarea":"Elaboración de EEFF mensuales individuales y consolidados","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":106,"titulo":"Cierre fiscal","tarea":"Consolidaciones de retenciones del ISR, permanentes, eventuales y otras","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":107,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de ventas: a contribuyentes y consumidor final","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":108,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de compras","asignado":"José Luis Martinez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":109,"titulo":"Cierre fiscal","tarea":"Informe 971, Balance y Estados de Resultados para las empresas que no aplican a Informe Fiscal (anual)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":110,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de IVA (F07)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":111,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de pago a cuenta y retenciones Mensuales (F14)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":112,"titulo":"Cierre fiscal","tarea":"Generación de mandamientos mensuales de ingresos por retenciones del 13 porciento de IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":113,"titulo":"Cierre fiscal","tarea":"Elaboración de informe mensual de retención, percepción o anticipo a cuenta de IVA (F930)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":114,"titulo":"Cierre fiscal","tarea":"Conciliación de ingresos (contabilidad, libros de IVA y declaraciones de IVA, pago a cuenta y DATA de Base)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":115,"titulo":"Cierre fiscal","tarea":"Elaboración de cuadro de proporcionalidad del IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":116,"titulo":"Cierre fiscal","tarea":"Elaboración de las plantillas para los informes Fiscales de las empresas que aplican (anual)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":117,"titulo":"Cierre fiscal","tarea":"Elaboración de Informe de Proveedores, Clientes, Acreedores y Deudores (F987) Semestral","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":118,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de inventario de productos (F983) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"En proceso","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":119,"titulo":"Cierre fiscal","tarea":"Elaboración de informe anual de retención del ISR (F910)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":120,"titulo":"Cierre fiscal","tarea":"Elaboración de informe sobre distribución y capitalización de utilidades (F915), Mensual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":121,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de actualización de dirección para recibir notificaciones (F211) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":122,"titulo":"Cierre fiscal","tarea":"Declaración del impuesto sobre la renta y contribución especial (F11), Anuales","asignado":"Jacqueline Vásquez","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"Completado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":123,"titulo":"Tesorería","tarea":"Contabilización del gasto financiero y aplicación de capital de préstamos (no desarrollo)","asignado":"Guadalupe Reyes","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":124,"titulo":"Tesorería","tarea":"Contabilización de intereses, comisiones y otras operaciones bancarias","asignado":"Guadalupe Reyes","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":125,"titulo":"Tesorería","tarea":"Gestionar la información bancaria pendiente de aplicar por las diferentes áreas","asignado":"Guadalupe Reyes","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":126,"titulo":"Tesorería","tarea":"Cierre y confirmación de las conciliaciones bancarias","asignado":"Guadalupe Reyes","fechaInicio":"2026-04-01","fechaLimite":null,"estado":"No iniciado","ciclo":"2026-04","cicloLabel":"Abril 2026"},{"id":127,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de gastos","asignado":"Kenia Palacios","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":128,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de tarjeta de crédito y liquidación de gastos","asignado":"Steve Mancia","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":129,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Antiguedad de cuentas por pagar","asignado":"Steve Mancia","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":130,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Conciliación de anticipos a proveedores y gestión de liquidaciones de anticipos","asignado":"Steve Mancia","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":131,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":132,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Aplicación de cobros","asignado":"Gestión de Cobros","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":133,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Facturación de ingresos por servicios a compañías relacionadas","asignado":"Alejandra Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":134,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Antigüedad de cuentas por cobrar cuadrada con la cuenta 1120","asignado":"Gestión de Cobros","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"No iniciado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":135,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Informe de cuentas incobrables","asignado":"Gestión de Cobros","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":136,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Gestión de cobro de retenciones bancarias","asignado":"Gestión de Cobros","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"No aplica","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":137,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":138,"titulo":"Cierre de módulo Afiliadas","tarea":"Liquidación de anticipos de TC y facturación afiliadas","asignado":"José Luis Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"No iniciado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":139,"titulo":"Cierre de módulo Afiliadas","tarea":"Antiguedad de cuentas por pagar","asignado":"José Luis Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":140,"titulo":"Cierre de módulo Afiliadas","tarea":"Antiguedad de cuentas por cobrar","asignado":"José Luis Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":141,"titulo":"Cierre de módulo Afiliadas","tarea":"Elaborar matriz de afiliadas y gestionar diferencias","asignado":"José Luis Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":142,"titulo":"Cierre de módulo Afiliadas","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":143,"titulo":"Ingresos de proyectos y depósitos","tarea":"Confirmar el ingreso de las reservas de clientes","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":144,"titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar y liquidar el reporte de depósitos de clientes rentistas","asignado":"Alejandra Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":145,"titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar y liquidar el reporte de depósitos de clientes habitacionales","asignado":"Gabriela Portillo","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":146,"titulo":"Ingresos de proyectos y depósitos","tarea":"Contabilizar el 100% de las CV (venta de apartamentos)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":147,"titulo":"Ingresos de proyectos y depósitos","tarea":"Elaborar grupos de desgrave para enviar al banco","asignado":"Gabriela Portillo","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":148,"titulo":"Ingresos de proyectos y depósitos","tarea":"Enviar reporte de retenciones bancarias a cobros","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":149,"titulo":"Cierre de Nómina","tarea":"Provisión de vacaciones","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":150,"titulo":"Cierre de Nómina","tarea":"Provisión de aguinaldo","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":151,"titulo":"Cierre de Nómina","tarea":"Provisión de indemnización","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":152,"titulo":"Cierre de Nómina","tarea":"Provisión de gratificación","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":153,"titulo":"Cierre de Nómina","tarea":"Provisión de Quincena 25","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":154,"titulo":"Cierre de Nómina","tarea":"Provisión patronal ISSS - INCAF","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":155,"titulo":"Cierre de Nómina","tarea":"Provisión AFP - IPSFA","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":156,"titulo":"Cierre de Nómina","tarea":"Recepción de documentos para planillas","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":157,"titulo":"Cierre de Nómina","tarea":"Contabilización de pagos planillas de proyectos","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":158,"titulo":"Cierre de Nómina","tarea":"Contabilización de planillas","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":159,"titulo":"Cierre de Nómina","tarea":"Liquidación de cuentas de planillas (pasivo)","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"No iniciado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":160,"titulo":"Cierre de Nómina","tarea":"Contabilización de cuentas por cobrar a socios","asignado":"Patricia Padilla","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":161,"titulo":"Cierre de GL","tarea":"Conciliación de activos fijos e intangibles. Depreciaciones y amortizaciones del mes","asignado":"Gabriela Portillo","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":162,"titulo":"Cierre de GL","tarea":"Gestión de conciliaciones bancarias","asignado":"José Luis Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"No iniciado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":163,"titulo":"Cierre de GL","tarea":"Revisión e integración de costos proyectos 118/214","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":164,"titulo":"Cierre de GL","tarea":"Revisión e integración de Inversiones","asignado":"José Luis Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":165,"titulo":"Cierre de GL","tarea":"Movimientos del patrimonio","asignado":"Derlin De León","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":166,"titulo":"Cierre de GL","tarea":"Contabilización de préstamos habitacionales (capital e intereses)","asignado":"Alejandra Martinez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":167,"titulo":"Cierre de GL","tarea":"Liquidación de impuestos de IVA, Pago a cta y retenciones","asignado":"Gabriela Portillo","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":168,"titulo":"Cierre de GL","tarea":"Liquidación y conciliación de Fondos rotativos","asignado":"Kenia Palacios","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":169,"titulo":"Cierre de GL","tarea":"Revisión de otras cuentas por cobrar","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"No iniciado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":170,"titulo":"Cierre de GL","tarea":"Revisión de balanza de comprobación al cierre mensual y composiciones de cuentas","asignado":"Derlin De León","fechaInicio":"2026-05-01","fechaLimite":"2026-05-07","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":171,"titulo":"Cierre de GL","tarea":"Elaboración de EEFF mensuales (individuales y consolidados)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-11","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":172,"titulo":"Cierre fiscal","tarea":"Consolidaciones de retenciones del ISR, permanentes, eventuales y otras","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":173,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de ventas: a contribuyentes y consumidor final","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":174,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de compras","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":175,"titulo":"Cierre fiscal","tarea":"Informe 971, Balance y Estados de Resultados para las empresas que no aplican a Informe Fiscal (anual)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":176,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de IVA (F07)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":177,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de pago a cuenta y retenciones Mensuales (F14)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":178,"titulo":"Cierre fiscal","tarea":"Generación de mandamientos mensuales de ingresos por retenciones del 13% de IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":179,"titulo":"Cierre fiscal","tarea":"Elaboración de informe mensual de retención, percepción o anticipo a cuenta de IVA (F930)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":180,"titulo":"Cierre fiscal","tarea":"Elaboración de cuadro de proporcionalidad del IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"En proceso","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":181,"titulo":"Cierre fiscal","tarea":"Elaboración de Informe de Proveedores, Clientes, Acreedores y Deudores (F987) Semestral","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":182,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de operaciones entre relacionadas (F982) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":183,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de inventario de productos (F983) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":184,"titulo":"Cierre fiscal","tarea":"Elaboración de informe anual de retención del ISR (F910)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":185,"titulo":"Cierre fiscal","tarea":"Elaboración de informe sobre distribución y capitalización de utilidades (F915), Mensual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":186,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de actualización de dirección para recibir notificaciones (F211) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":187,"titulo":"Cierre fiscal","tarea":"Declaración del impuesto sobre la renta y contribución especial (F11), Anuales","asignado":"Jacqueline Vásquez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-08","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":188,"titulo":"Conciliaciones bancarias","tarea":"Contabilización del gasto financiero y aplicación de capital de préstamos (no desarrollo)","asignado":"Guadalupe Reyes","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":189,"titulo":"Conciliaciones bancarias","tarea":"Gestionar la información bancaria pendiente de aplicar por las diferentes áreas","asignado":"Guadalupe Reyes","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"No aplica","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":190,"titulo":"Conciliaciones bancarias","tarea":"Cierre y confirmación de las conciliaciones bancarias","asignado":"Inmer Torres","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"No aplica","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":191,"titulo":"Conciliaciones bancarias","tarea":"Contabilización de intereses, comisiones y otras operaciones bancarias","asignado":"Inmer Torres","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":192,"titulo":"Cierre de Cobros","tarea":"Reporte de retenciones del 1% mensual","asignado":"Gestión de Cobros","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":193,"titulo":"Cierre Administración","tarea":"Registro del gasto/provisión de pago de alcaldía Santa Tecla","asignado":"Claudia Hernandez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":194,"titulo":"Cierre Administración","tarea":"Registro del gasto de celulares pagado con tarjeta de crédito","asignado":"Claudia Hernandez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":195,"titulo":"Cierre Administración","tarea":"Registro del gasto/provisión de pago de seguros de bienes","asignado":"Claudia Hernandez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":196,"titulo":"Cierre Administración","tarea":"Ingreso de pagos con tarjeta de crédito","asignado":"Claudia Hernandez","fechaInicio":"2026-05-01","fechaLimite":"2026-05-06","estado":"Completado","ciclo":"2026-05","cicloLabel":"Mayo 2026"},{"id":197,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de gastos","asignado":"Kenia Palacios","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":198,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de tarjeta de crédito y liquidación de gastos","asignado":"Steve Mancia","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":199,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Antiguedad de cuentas por pagar","asignado":"Steve Mancia","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":200,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Conciliación de anticipos a proveedores y gestión de liquidaciones de anticipos","asignado":"Steve Mancia","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":201,"titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":202,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Aplicación de cobros","asignado":"Gestión de Cobros","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":203,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Facturación de ingresos por servicios a compañías relacionadas","asignado":"Alejandra Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":204,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Antigüedad de cuentas por cobrar cuadrada con la cuenta 1120","asignado":"Gestión de Cobros","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"No aplica","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":205,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Informe de cuentas incobrables","asignado":"Gestión de Cobros","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":206,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Gestión de cobro de retenciones bancarias","asignado":"Gestión de Cobros","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"No aplica","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":207,"titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":208,"titulo":"Cierre de módulo Afiliadas","tarea":"Liquidación de anticipos de TC y facturación afiliadas","asignado":"José Luis Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":209,"titulo":"Cierre de módulo Afiliadas","tarea":"Antiguedad de cuentas por pagar","asignado":"José Luis Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":210,"titulo":"Cierre de módulo Afiliadas","tarea":"Antiguedad de cuentas por cobrar","asignado":"José Luis Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":211,"titulo":"Cierre de módulo Afiliadas","tarea":"Elaborar matriz de afiliadas y gestionar diferencias","asignado":"José Luis Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":212,"titulo":"Cierre de módulo Afiliadas","tarea":"Cierre del módulo","asignado":"Derlin De León","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":213,"titulo":"Ingresos de proyectos y depósitos","tarea":"Confirmar el ingreso de las reservas de clientes","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":214,"titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar y liquidar el reporte de depósitos de clientes rentistas","asignado":"Alejandra Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":215,"titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar y liquidar el reporte de depósitos de clientes habitacionales","asignado":"Gabriela Portillo","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":216,"titulo":"Ingresos de proyectos y depósitos","tarea":"Contabilizar el 100% de las CV (venta de apartamentos)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":217,"titulo":"Ingresos de proyectos y depósitos","tarea":"Elaborar grupos de desgrave para enviar al banco","asignado":"Gabriela Portillo","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":218,"titulo":"Ingresos de proyectos y depósitos","tarea":"Enviar reporte de retenciones bancarias a cobros","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":219,"titulo":"Cierre de Nómina","tarea":"Provisión de vacaciones","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":220,"titulo":"Cierre de Nómina","tarea":"Provisión de aguinaldo","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":221,"titulo":"Cierre de Nómina","tarea":"Provisión de indemnización","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":222,"titulo":"Cierre de Nómina","tarea":"Provisión de gratificación","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":223,"titulo":"Cierre de Nómina","tarea":"Provisión de Quincena 25","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":224,"titulo":"Cierre de Nómina","tarea":"Provisión patronal ISSS - INCAF","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":225,"titulo":"Cierre de Nómina","tarea":"Provisión AFP - IPSFA","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":226,"titulo":"Cierre de Nómina","tarea":"Recepción de documentos para planillas","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":227,"titulo":"Cierre de Nómina","tarea":"Contabilización de pagos planillas de proyectos","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":228,"titulo":"Cierre de Nómina","tarea":"Contabilización de planillas","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":229,"titulo":"Cierre de Nómina","tarea":"Liquidación de cuentas de planillas (pasivo)","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":230,"titulo":"Cierre de Nómina","tarea":"Contabilización de cuentas por cobrar a socios","asignado":"Patricia Padilla","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":231,"titulo":"Cierre de GL","tarea":"Conciliación de activos fijos e intangibles. Depreciaciones y amortizaciones del mes","asignado":"Gabriela Portillo","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":232,"titulo":"Cierre de GL","tarea":"Gestión de conciliaciones bancarias","asignado":"José Luis Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":233,"titulo":"Cierre de GL","tarea":"Revisión e integración de costos proyectos 118/214","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":234,"titulo":"Cierre de GL","tarea":"Revisión e integración de Inversiones","asignado":"José Luis Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":235,"titulo":"Cierre de GL","tarea":"Movimientos del patrimonio","asignado":"Derlin De León","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":236,"titulo":"Cierre de GL","tarea":"Contabilización de préstamos habitacionales (capital e intereses)","asignado":"Alejandra Martinez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":237,"titulo":"Cierre de GL","tarea":"Liquidación de impuestos de IVA, Pago a cta y retenciones","asignado":"Gabriela Portillo","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":238,"titulo":"Cierre de GL","tarea":"Liquidación y conciliación de Fondos rotativos","asignado":"Kenia Palacios","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":239,"titulo":"Cierre de GL","tarea":"Revisión de otras cuentas por cobrar","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":240,"titulo":"Cierre de GL","tarea":"Revisión de balanza de comprobación al cierre mensual y composiciones de cuentas","asignado":"Derlin De León","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":241,"titulo":"Cierre de GL","tarea":"Elaboración de EEFF mensuales (individuales y consolidados)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-05","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":242,"titulo":"Cierre fiscal","tarea":"Consolidaciones de retenciones del ISR, permanentes, eventuales y otras","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":243,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de ventas: a contribuyentes y consumidor final","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":244,"titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de compras","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":245,"titulo":"Cierre fiscal","tarea":"Informe 971, Balance y Estados de Resultados para las empresas que no aplican a Informe Fiscal (anual)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":246,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de IVA (F07)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":247,"titulo":"Cierre fiscal","tarea":"Elaboración de declaración de pago a cuenta y retenciones Mensuales (F14)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":248,"titulo":"Cierre fiscal","tarea":"Generación de mandamientos mensuales de ingresos por retenciones del 13% de IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":249,"titulo":"Cierre fiscal","tarea":"Elaboración de informe mensual de retención, percepción o anticipo a cuenta de IVA (F930)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":250,"titulo":"Cierre fiscal","tarea":"Elaboración de cuadro de proporcionalidad del IVA","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":251,"titulo":"Cierre fiscal","tarea":"Elaboración de Informe de Proveedores, Clientes, Acreedores y Deudores (F987) Semestral","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":252,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de operaciones entre relacionadas (F982) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":253,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de inventario de productos (F983) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":254,"titulo":"Cierre fiscal","tarea":"Elaboración de informe anual de retención del ISR (F910)","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":255,"titulo":"Cierre fiscal","tarea":"Elaboración de informe sobre distribución y capitalización de utilidades (F915), Mensual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":256,"titulo":"Cierre fiscal","tarea":"Elaboración de informe de actualización de dirección para recibir notificaciones (F211) anual","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":257,"titulo":"Cierre fiscal","tarea":"Declaración del impuesto sobre la renta y contribución especial (F11), Anuales","asignado":"Jacqueline Vásquez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-08","estado":"No iniciado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":258,"titulo":"Conciliaciones bancarias","tarea":"Contabilización del gasto financiero y aplicación de capital de préstamos (no desarrollo)","asignado":"Guadalupe Reyes","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":259,"titulo":"Conciliaciones bancarias","tarea":"Gestionar la información bancaria pendiente de aplicar por las diferentes áreas","asignado":"Guadalupe Reyes","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"No aplica","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":260,"titulo":"Conciliaciones bancarias","tarea":"Cierre y confirmación de las conciliaciones bancarias","asignado":"Inmer Torres","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"No aplica","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":261,"titulo":"Conciliaciones bancarias","tarea":"Contabilización de intereses, comisiones y otras operaciones bancarias","asignado":"Inmer Torres","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":262,"titulo":"Cierre de Cobros","tarea":"Reporte de retenciones del 1% mensual","asignado":"Gestión de Cobros","fechaInicio":"2026-06-01","fechaLimite":"2026-06-04","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":263,"titulo":"Cierre Administración","tarea":"Registro del gasto/provisión de pago de alcaldía Santa Tecla","asignado":"Claudia Hernandez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":264,"titulo":"Cierre Administración","tarea":"Registro del gasto de celulares pagado con tarjeta de crédito","asignado":"Claudia Hernandez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":265,"titulo":"Cierre Administración","tarea":"Registro del gasto/provisión de pago de seguros de bienes","asignado":"Claudia Hernandez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"Completado","ciclo":"2026-06","cicloLabel":"Junio 2026"},{"id":266,"titulo":"Cierre Administración","tarea":"Ingreso de pagos con tarjeta de crédito","asignado":"Claudia Hernandez","fechaInicio":"2026-06-01","fechaLimite":"2026-06-03","estado":"En proceso","ciclo":"2026-06","cicloLabel":"Junio 2026"}];
+
+/* =========================================================================
+   PLANTILLA DEL CICLO — las mismas 70 tareas se repiten cada mes (basada en
+   julio 2026). "diaLimite" es el día del mes en que vence cada tarea.
+   ========================================================================= */
+const TASK_TEMPLATE = [{"k":"T01","titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de gastos","asignado":"Kenia Palacios","diaLimiteHabil":3},{"k":"T02","titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Control de tarjeta de crédito y liquidación de gastos","asignado":"Steve Mancia","diaLimiteHabil":4},{"k":"T03","titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Antiguedad de cuentas por pagar","asignado":"Steve Mancia","diaLimiteHabil":4},{"k":"T04","titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Conciliación de anticipos a proveedores y gestión de liquidaciones de anticipos","asignado":"Steve Mancia","diaLimiteHabil":4},{"k":"T05","titulo":"Cierre de módulo de Cuentas por pagar/Gastos","tarea":"Cierre del módulo","asignado":"Derlin De León","diaLimiteHabil":3},{"k":"T06","titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Aplicación de cobros","asignado":"Gestión de Cobros","diaLimiteHabil":4},{"k":"T07","titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Facturación de ingresos por servicios a compañías relacionadas","asignado":"Alejandra Martinez","diaLimiteHabil":3},{"k":"T08","titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Antigüedad de cuentas por cobrar cuadrada con la cuenta 1120","asignado":"Gestión de Cobros","diaLimiteHabil":4},{"k":"T09","titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Informe de cuentas incobrables","asignado":"Gestión de Cobros","diaLimiteHabil":4},{"k":"T10","titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Gestión de cobro de retenciones bancarias","asignado":"Gestión de Cobros","diaLimiteHabil":4},{"k":"T11","titulo":"Cierre de módulo de Cuentas por Cobrar","tarea":"Cierre del módulo","asignado":"Derlin De León","diaLimiteHabil":4},{"k":"T12","titulo":"Cierre de módulo Afiliadas","tarea":"Liquidación de anticipos de TC y facturación afiliadas","asignado":"José Luis Martinez","diaLimiteHabil":4},{"k":"T13","titulo":"Cierre de módulo Afiliadas","tarea":"Antiguedad de cuentas por pagar","asignado":"José Luis Martinez","diaLimiteHabil":4},{"k":"T14","titulo":"Cierre de módulo Afiliadas","tarea":"Antiguedad de cuentas por cobrar","asignado":"José Luis Martinez","diaLimiteHabil":4},{"k":"T15","titulo":"Cierre de módulo Afiliadas","tarea":"Elaborar matriz de afiliadas y gestionar diferencias","asignado":"José Luis Martinez","diaLimiteHabil":4},{"k":"T16","titulo":"Cierre de módulo Afiliadas","tarea":"Cierre del módulo","asignado":"Derlin De León","diaLimiteHabil":4},{"k":"T17","titulo":"Ingresos de proyectos y depósitos","tarea":"Confirmar el ingreso de las reservas de clientes","asignado":"Jacqueline Vásquez","diaLimiteHabil":4},{"k":"T18","titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar y liquidar el reporte de depósitos de clientes rentistas","asignado":"Alejandra Martinez","diaLimiteHabil":4},{"k":"T19","titulo":"Ingresos de proyectos y depósitos","tarea":"Conciliar y liquidar el reporte de depósitos de clientes habitacionales","asignado":"Jacqueline Vásquez","diaLimiteHabil":4},{"k":"T20","titulo":"Ingresos de proyectos y depósitos","tarea":"Contabilizar el 100% de las CV (venta de apartamentos)","asignado":"Jacqueline Vásquez","diaLimiteHabil":4},{"k":"T21","titulo":"Ingresos de proyectos y depósitos","tarea":"Elaborar grupos de desgrave para enviar al banco","asignado":"Jacqueline Vásquez","diaLimiteHabil":4},{"k":"T22","titulo":"Ingresos de proyectos y depósitos","tarea":"Enviar reporte de retenciones bancarias a cobros","asignado":"Jacqueline Vásquez","diaLimiteHabil":4},{"k":"T23","titulo":"Cierre de Nómina","tarea":"Provisión de vacaciones","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T24","titulo":"Cierre de Nómina","tarea":"Provisión de aguinaldo","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T25","titulo":"Cierre de Nómina","tarea":"Provisión de indemnización","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T26","titulo":"Cierre de Nómina","tarea":"Provisión de gratificación","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T27","titulo":"Cierre de Nómina","tarea":"Provisión de Quincena 25","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T28","titulo":"Cierre de Nómina","tarea":"Provisión patronal ISSS - INCAF","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T29","titulo":"Cierre de Nómina","tarea":"Provisión AFP - IPSFA","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T30","titulo":"Cierre de Nómina","tarea":"Recepción de documentos para planillas","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T31","titulo":"Cierre de Nómina","tarea":"Contabilización de pagos planillas de proyectos","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T32","titulo":"Cierre de Nómina","tarea":"Contabilización de planillas","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T33","titulo":"Cierre de Nómina","tarea":"Liquidación de cuentas de planillas (pasivo)","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T34","titulo":"Cierre de Nómina","tarea":"Contabilización de cuentas por cobrar a socios","asignado":"Patricia Padilla","diaLimiteHabil":3},{"k":"T35","titulo":"Cierre de GL","tarea":"Conciliación de activos fijos e intangibles. Depreciaciones y amortizaciones del mes","asignado":"José Luis Martinez","diaLimiteHabil":3},{"k":"T36","titulo":"Cierre de GL","tarea":"Gestión de conciliaciones bancarias","asignado":"José Luis Martinez","diaLimiteHabil":15},{"k":"T37","titulo":"Cierre de GL","tarea":"Revisión e integración de costos proyectos 118/214","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T38","titulo":"Cierre de GL","tarea":"Revisión e integración de Inversiones","asignado":"José Luis Martinez","diaLimiteHabil":15},{"k":"T39","titulo":"Cierre de GL","tarea":"Movimientos del patrimonio","asignado":"Derlin De León","diaLimiteHabil":15},{"k":"T40","titulo":"Cierre de GL","tarea":"Contabilización de préstamos habitacionales (capital e intereses)","asignado":"Alejandra Martinez","diaLimiteHabil":15},{"k":"T41","titulo":"Cierre de GL","tarea":"Liquidación de impuestos de IVA, Pago a cta y retenciones","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T42","titulo":"Cierre de GL","tarea":"Liquidación y conciliación de Fondos rotativos","asignado":"Kenia Palacios","diaLimiteHabil":3},{"k":"T43","titulo":"Cierre de GL","tarea":"Revisión de otras cuentas por cobrar","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T44","titulo":"Cierre de GL","tarea":"Revisión de balanza de comprobación al cierre mensual","asignado":"Derlin De León","diaLimiteHabil":3},{"k":"T45","titulo":"Cierre de GL","tarea":"Elaboración de EEFF mensuales (individuales y consolidados)","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T46","titulo":"Cierre fiscal","tarea":"Consolidaciones de retenciones del ISR, permanentes, eventuales y otras","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T47","titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de ventas: a contribuyentes y consumidor final","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T48","titulo":"Cierre fiscal","tarea":"Revisión y elaboración de libro de compras","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T49","titulo":"Cierre fiscal","tarea":"Informe 971, Balance y Estados de Resultados para las empresas que no aplican a Informe Fiscal (anual)","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T50","titulo":"Cierre fiscal","tarea":"Elaboración de declaración de IVA (F07)","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T51","titulo":"Cierre fiscal","tarea":"Elaboración de declaración de pago a cuenta y retenciones Mensuales (F14)","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T52","titulo":"Cierre fiscal","tarea":"Generación de mandamientos mensuales de ingresos por retenciones del 13% de IVA","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T53","titulo":"Cierre fiscal","tarea":"Elaboración de informe mensual de retención, percepción o anticipo a cuenta de IVA (F930)","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T54","titulo":"Cierre fiscal","tarea":"Elaboración de cuadro de proporcionalidad del IVA","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T55","titulo":"Cierre fiscal","tarea":"Elaboración de Informe de Proveedores, Clientes, Acreedores y Deudores (F987) Semestral","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T56","titulo":"Cierre fiscal","tarea":"Elaboración de informe de operaciones entre relacionadas (F982) anual","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T57","titulo":"Cierre fiscal","tarea":"Elaboración de informe de inventario de productos (F983) anual","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T58","titulo":"Cierre fiscal","tarea":"Elaboración de informe anual de retención del ISR (F910)","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T59","titulo":"Cierre fiscal","tarea":"Elaboración de informe sobre distribución y capitalización de utilidades (F915), Mensual","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T60","titulo":"Cierre fiscal","tarea":"Elaboración de informe de actualización de dirección para recibir notificaciones (F211) anual","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T61","titulo":"Cierre fiscal","tarea":"Declaración del impuesto sobre la renta y contribución especial (F11), Anuales","asignado":"Jacqueline Vásquez","diaLimiteHabil":15},{"k":"T62","titulo":"Conciliaciones bancarias","tarea":"Contabilización del gasto financiero y aplicación de capital de préstamos (no desarrollo)","asignado":"Guadalupe Reyes","diaLimiteHabil":3},{"k":"T63","titulo":"Conciliaciones bancarias","tarea":"Gestionar la información bancaria pendiente de aplicar por las diferentes áreas","asignado":"Guadalupe Reyes","diaLimiteHabil":15},{"k":"T64","titulo":"Conciliaciones bancarias","tarea":"Cierre y confirmación de las conciliaciones bancarias","asignado":"Inmer Torres","diaLimiteHabil":15},{"k":"T65","titulo":"Conciliaciones bancarias","tarea":"Contabilización de intereses, comisiones y otras operaciones bancarias","asignado":"Inmer Torres","diaLimiteHabil":3},{"k":"T66","titulo":"Cierre de Cobros","tarea":"Reporte de retenciones del 1% mensual","asignado":"Gestión de Cobros","diaLimiteHabil":4},{"k":"T67","titulo":"Cierre Administración","tarea":"Registro del gasto/provisión de pago de alcaldía Santa Tecla","asignado":"Claudia Hernandez","diaLimiteHabil":3},{"k":"T68","titulo":"Cierre Administración","tarea":"Registro del gasto de celulares pagado con tarjeta de crédito","asignado":"Claudia Hernandez","diaLimiteHabil":3},{"k":"T69","titulo":"Cierre Administración","tarea":"Registro del gasto/provisión de pago de seguros de bienes","asignado":"Claudia Hernandez","diaLimiteHabil":3},{"k":"T70","titulo":"Cierre Administración","tarea":"Ingreso de pagos con tarjeta de crédito","asignado":"Claudia Hernandez","diaLimiteHabil":3}];
+
+const MESES_LARGO = {"01":"Enero","02":"Febrero","03":"Marzo","04":"Abril","05":"Mayo","06":"Junio","07":"Julio","08":"Agosto","09":"Septiembre","10":"Octubre","11":"Noviembre","12":"Diciembre"};
+function cicloLabel(c){
+  if(!c) return "—";
+  let [y,m] = c.split('-').map(Number);
+  m--; if(m<1){ m=12; y--; } // el trabajo del mes "c" cierra el mes anterior
+  return `${MESES_LARGO[String(m).padStart(2,'0')]} ${y}`;
+}
+function initials(name){ return (name||'?').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function fmtDate(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+function todayISO(){ const t=new Date(); return t.toISOString().slice(0,10); }
+function slug(s){ return (s||'').replace(/[^a-zA-Z0-9]/g,''); }
+const NO_CUENTAN = ['No aplica'];
+
+/* =========================================================================
+   ESTADO GLOBAL
+   ========================================================================= */
+let allTasks = [];
+let currentUser = null;      // {name, email, isAdmin}
+let currentCycle = null;
+let activeTab = 'mis-tareas';
+let demoMode = true;
+let notifiedThisSession = new Set();
+
+/* =========================================================================
+   AUTENTICACIÓN — Azure Static Web Apps + Entra ID ("Easy Auth")
+   Mismo patrón que la herramienta de Grupo de Sola. Si no hay sesión SWA
+   (por ejemplo mientras pruebas el archivo suelto), cae a modo demo.
+   ========================================================================= */
+async function initAuth(){
+  try{
+    const res = await fetch('/.auth/me');
+    if(res.ok){
+      const data = await res.json();
+      const p = data && data.clientPrincipal;
+      if(p && p.userDetails){
+        const email = p.userDetails.toLowerCase();
+        const name = Object.keys(EMPLEADOS).find(n => EMPLEADOS[n].toLowerCase() === email);
+        currentUser = { name: name || p.userDetails, email, isAdmin: ADMIN_EMAILS.includes(email), isViewer: VIEWER_EMAILS.includes(email) };
+        demoMode = false;
+        return;
+      }
+    }
+  }catch(e){ /* sin SWA/Easy Auth disponible -> demo */ }
+  currentUser = null;
+}
+
+/* =========================================================================
+   CAPA DE DATOS — histórico fijo + ciclo(s) vivo(s) generados desde
+   TASK_TEMPLATE, combinados con overrides de Power Automate si están conectados
+   ========================================================================= */
+function configuredUrl(u){ return u && !u.startsWith('REEMPLAZAR'); }
+
+function nextCycle(c){
+  let [y,m] = c.split('-').map(Number);
+  m++; if(m>12){ m=1; y++; }
+  return `${y}-${String(m).padStart(2,'0')}`;
+}
+const HIST_CYCLES = [...new Set(SEED_HISTORICO.map(t=>t.ciclo))].sort();
+const LIVE_START_CYCLE = nextCycle(HIST_CYCLES[HIST_CYCLES.length-1]);
+
+function getLiveCycles(){
+  const out = [];
+  let c = LIVE_START_CYCLE;
+  const hoy = todayISO().slice(0,7);
+  while(c <= hoy){ out.push(c); c = nextCycle(c); }
+  if(out.length===0) out.push(LIVE_START_CYCLE);
+  return out;
+}
+
+/* =========================================================================
+   DÍAS HÁBILES Y FERIADOS DE EL SALVADOR — usados para calcular la fecha
+   límite de cada tarea como "el N-ésimo día hábil del mes", no un día fijo
+   del calendario. Los feriados de fecha fija se repiten cada año; Semana
+   Santa se calcula con el algoritmo de Gauss (depende de la Pascua), así
+   que esto sigue funcionando en 2027, 2028, etc. sin tener que tocarlo.
+
+   OJO: "Día de la Madre" y "Día del Padre" están incluidos porque aparecen
+   en los feriados nacionales de El Salvador, pero no todas las empresas
+   privadas los observan igual — ajusta FERIADOS_FIJOS si no aplican en Bolívar.
+   ========================================================================= */
+const FERIADOS_FIJOS = [
+  [1,1],           // Año Nuevo
+  [5,1],           // Día del Trabajo
+  [5,10],          // Día de la Madre
+  [6,17],          // Día del Padre
+  [8,3],[8,4],[8,5],[8,6], // Fiestas Agostinas (San Salvador)
+  [9,15],          // Día de la Independencia
+  [11,2],          // Día de los Difuntos
+  [12,25],         // Navidad
+];
+
+function easterSunday(year){
+  const a=year%19, b=Math.floor(year/100), c=year%100, d=Math.floor(b/4), e=b%4,
+        f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30,
+        i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, mm=Math.floor((a+11*h+22*l)/451),
+        month=Math.floor((h+l-7*mm+114)/31), day=((h+l-7*mm+114)%31)+1;
+  return new Date(year, month-1, day);
+}
+
+function feriadosDelAnio(year){
+  const set = new Set();
+  FERIADOS_FIJOS.forEach(([mo,d])=>{ set.add(`${year}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`); });
+  const pascua = easterSunday(year);
+  [-3,-2,-1].forEach(offset=>{ // Jueves, Viernes, Sábado Santo
+    const d = new Date(pascua); d.setDate(d.getDate()+offset);
+    set.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+  });
+  return set;
+}
+
+function esDiaHabil(iso, feriadosSet){
+  const dow = new Date(iso+'T00:00:00').getDay(); // 0=domingo, 6=sábado
+  return dow!==0 && dow!==6 && !feriadosSet.has(iso);
+}
+
+function nthBusinessDayOfMonth(year, month, n){
+  if(!n) return null;
+  const feriados = feriadosDelAnio(year);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  let count = 0;
+  for(let day=1; day<=daysInMonth; day++){
+    const iso = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    if(esDiaHabil(iso, feriados)){
+      count++;
+      if(count===n) return iso;
+    }
+  }
+  return null;
+}
+
+function buildCycleFromTemplate(ciclo, overrides, idStart){
+  const [y,m] = ciclo.split('-');
+  let nextId = idStart;
+  return TASK_TEMPLATE.map(t=>{
+    const ov = overrides[t.k] || {};
+    const fechaLimiteDefault = nthBusinessDayOfMonth(Number(y), Number(m), t.diaLimiteHabil);
+    return {
+      id: nextId++,
+      taskKey: t.k,
+      titulo: t.titulo,
+      tarea: t.tarea,
+      asignado: ov.asignado || t.asignado,
+      fechaInicio: ov.fechaInicio || `${y}-${m}-01`,
+      fechaLimite: ov.fechaLimite !== undefined ? ov.fechaLimite : fechaLimiteDefault,
+      estado: ov.estado || 'No iniciado',
+      ciclo, cicloLabel: cicloLabel(ciclo)
+    };
+  });
+}
+
+async function fetchEstadoCiclo(ciclo){
+  if(configuredUrl(API.getEstadoCiclo)){
+    try{
+      const res = await fetch(`${API.getEstadoCiclo}${API.getEstadoCiclo.includes('?')?'&':'?'}ciclo=${ciclo}`);
+      if(res.ok){
+        const rows = await res.json();
+        const map = {};
+        (rows||[]).forEach(r=>{ map[r.taskKey] = r; });
+        return map;
+      }
+    }catch(e){ console.warn('No se pudo leer el estado del ciclo '+ciclo+', usando plantilla base.', e); }
+  }
+  return {};
+}
+
+async function loadTareas(){
+  allTasks = SEED_HISTORICO.map(t=>({...t}));
+  let nextId = allTasks.length + 1;
+  for(const ciclo of getLiveCycles()){
+    const overrides = await fetchEstadoCiclo(ciclo);
+    const tareas = buildCycleFromTemplate(ciclo, overrides, nextId);
+    nextId += tareas.length;
+    allTasks = allTasks.concat(tareas);
+  }
+}
+
+async function persistEstado(task){
+  if(!task.taskKey) return;
+  if(configuredUrl(API.updateEstado)){
+    try{
+      await fetch(API.updateEstado, {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ciclo:task.ciclo, taskKey:task.taskKey, estado:task.estado, modificadoPor: currentUser?.email || 'demo' })});
+    }catch(e){ console.warn('No se pudo guardar en SharePoint (modo demo).', e); }
+  }
+}
+async function persistFechas(task){
+  if(!task.taskKey) return;
+  if(configuredUrl(API.updateFechas)){
+    try{
+      await fetch(API.updateFechas, {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ciclo:task.ciclo, taskKey:task.taskKey, fechaInicio:task.fechaInicio, fechaLimite:task.fechaLimite, modificadoPor: currentUser?.email || 'demo' })});
+    }catch(e){ console.warn('No se pudo guardar fechas en SharePoint (modo demo).', e); }
+  }
+}
+async function persistNotificacion(usuario, ciclo, total){
+  if(configuredUrl(API.notificarCompletado)){
+    try{
+      await fetch(API.notificarCompletado, {method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ usuario, ciclo, total })});
+    }catch(e){ console.warn('No se pudo enviar la notificación real (modo demo).', e); }
+  }
+}
+
+/* =========================================================================
+   HELPERS DE DATOS
+   ========================================================================= */
+function getCycles(){ return [...new Set(allTasks.map(t=>t.ciclo))].filter(Boolean).sort(); }
+function tasksForCycle(c){ return allTasks.filter(t=>t.ciclo===c); }
+function isOverdue(t){ return t.fechaLimite && t.estado!=='Completado' && t.estado!=='No aplica' && t.fechaLimite < todayISO(); }
+function daysOverdue(t){ const d1=new Date(t.fechaLimite), d2=new Date(todayISO()); return Math.round((d2-d1)/86400000); }
+function pctClass(e){ return e.replace(/\s/g,''); }
+
+function computeStats(tasks){
+  const relevant = tasks.filter(t=>!NO_CUENTAN.includes(t.estado));
+  const completado = tasks.filter(t=>t.estado==='Completado').length;
+  const enProceso = tasks.filter(t=>t.estado==='En proceso').length;
+  const noIniciado = tasks.filter(t=>t.estado==='No iniciado').length;
+  const noAplica = tasks.filter(t=>t.estado==='No aplica').length;
+  const total = tasks.length;
+  const pct = relevant.length ? Math.round(100*completado/relevant.length) : 0;
+  return {total, completado, enProceso, noIniciado, noAplica, pct, relevant: relevant.length};
+}
+
+function checkPersonComplete(name, ciclo){
+  const key = name+'|'+ciclo;
+  const tasks = allTasks.filter(t=>t.asignado===name && t.ciclo===ciclo);
+  const relevant = tasks.filter(t=>!NO_CUENTAN.includes(t.estado));
+  const done = relevant.length>0 && relevant.every(t=>t.estado==='Completado');
+  if(done && !notifiedThisSession.has(key)){
+    notifiedThisSession.add(key);
+    showToast(`${name} completó el 100% de sus tareas — ${cicloLabel(ciclo)}`, true);
+    persistNotificacion(name, ciclo, relevant.length);
+  }
+}
+
+/* =========================================================================
+   RENDER — layout general
+   ========================================================================= */
+function stampSVG(){
+  return `<svg class="stamp" viewBox="0 0 100 100" aria-hidden="true">
+    <circle cx="50" cy="50" r="44" fill="none" stroke="#00A651" stroke-width="3" stroke-dasharray="4 3"/>
+    <circle cx="50" cy="50" r="35" fill="none" stroke="#00A651" stroke-width="1.4"/>
+    <text x="50" y="47" text-anchor="middle" font-size="10.5" font-weight="800" fill="#00A651" font-family="Gidole, Arimo, sans-serif" letter-spacing="1">CERRADO</text>
+    <text x="50" y="61" text-anchor="middle" font-size="9" font-weight="700" fill="#00A651" font-family="Gidole, Arimo, sans-serif">100%</text>
+  </svg>`;
+}
+
+function renderDemoBanner(){
+  const slot = document.getElementById('demo-banner-slot');
+  if(!demoMode){ slot.innerHTML=''; return; }
+  slot.innerHTML = `<div class="demo-banner">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 16.5v.01" stroke="#8A5A15" stroke-width="2.2" stroke-linecap="round"/><path d="M10.3 3.86 1.8 18a2 2 0 0 0 1.72 3h16.96a2 2 0 0 0 1.72-3L13.7 3.86a2 2 0 0 0-3.4 0Z" stroke="#8A5A15" stroke-width="1.8"/></svg>
+    Modo demo — sin conexión a Power Automate/SharePoint todavía. Los cambios no se guardan al recargar. Configura <code>API</code> y <code>EMPLEADOS</code> en el código para activar la versión real.
+  </div>`;
+}
+
+function renderHeadRight(){
+  const el = document.getElementById('head-right');
+  const cycles = getCycles();
+  let cycleSel = `<select class="cycle-select" id="cycle-select">` +
+    cycles.map(c=>`<option value="${c}" ${c===currentCycle?'selected':''}>${cicloLabel(c)}</option>`).join('') +
+    `</select>`;
+
+  let userBlock = '';
+  if(currentUser){
+    userBlock = `<div class="user-chip">
+      <div class="avatar">${initials(currentUser.name)}</div>
+      <div><div class="u-name">${currentUser.name}${currentUser.isAdmin?'<span class="admin-tag">Jefe</span>':(currentUser.isViewer?'<span class="viewer-tag">Visor</span>':'')}</div>
+      <div class="u-role">${currentUser.email}</div></div>
+    </div>`;
+  }else{
+    const names = Object.keys(EMPLEADOS);
+    userBlock = `<select class="cycle-select" id="demo-user-select">
+      <option value="">Modo demo: elige tu usuario…</option>
+      ${names.map(n=>`<option value="${n}">${n}${ADMIN_EMAILS.includes(EMPLEADOS[n])?' (Jefe)':(VIEWER_EMAILS.includes(EMPLEADOS[n])?' (Visor)':'')}</option>`).join('')}
+    </select>`;
+  }
+  el.innerHTML = cycleSel + userBlock;
+  document.getElementById('cycle-select').onchange = e=>{ currentCycle = e.target.value; renderView(); renderHeadRight(); };
+  const du = document.getElementById('demo-user-select');
+  if(du) du.onchange = e=>{
+    if(!e.target.value){ currentUser=null; return renderAll(); }
+    const email = EMPLEADOS[e.target.value];
+    currentUser = { name:e.target.value, email, isAdmin: ADMIN_EMAILS.includes(email), isViewer: VIEWER_EMAILS.includes(email) };
+    renderAll();
+  };
+}
+
+function renderTabs(){
+  const el = document.getElementById('tabs');
+  let tabs;
+  if(currentUser && currentUser.isViewer && !currentUser.isAdmin){
+    tabs = [
+      {id:'dashboard', label:'Dashboard'},
+      {id:'historico', label:'Histórico'},
+    ];
+  } else {
+    tabs = [
+      {id:'mis-tareas', label:'Mis tareas'},
+      {id:'dashboard', label:'Dashboard'},
+      {id:'historico', label:'Histórico'},
+    ];
+    if(currentUser && currentUser.isAdmin) tabs.push({id:'panel', label:'Panel de control'});
+  }
+  el.innerHTML = tabs.map(t=>`<button data-tab="${t.id}" class="${activeTab===t.id?'active':''}">${t.label}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{ activeTab=b.dataset.tab; renderAll(); });
+}
+
+function renderAll(){
+  renderDemoBanner();
+  renderHeadRight();
+  renderTabs();
+  renderView();
+}
+
+function renderView(){
+  const esVisorPuro = currentUser && currentUser.isViewer && !currentUser.isAdmin;
+  if(esVisorPuro && (activeTab==='mis-tareas' || activeTab==='panel')) activeTab='dashboard';
+  if(activeTab==='mis-tareas') return renderMisTareas();
+  if(activeTab==='dashboard') return renderDashboard();
+  if(activeTab==='historico') return renderHistorico();
+  if(activeTab==='panel') return renderPanel();
+}
+
+/* =========================================================================
+   VISTA: MIS TAREAS
+   ========================================================================= */
+function renderMisTareas(){
+  const view = document.getElementById('view');
+  if(!currentUser){
+    view.innerHTML = `<div class="card empty-state">Identifícate para ver tus tareas asignadas.<br>En producción esto ocurre automático con tu sesión de Microsoft 365.</div>`;
+    return;
+  }
+  const cycleTasks = tasksForCycle(currentCycle);
+  const mine = cycleTasks.filter(t=>t.asignado===currentUser.name);
+
+  if(mine.length===0){
+    view.innerHTML = `<div class="card empty-state">No tienes tareas asignadas en <strong>${cicloLabel(currentCycle)}</strong>.<br>Puedes revisar el avance general en el Dashboard.</div>`;
+    return;
+  }
+
+  const stats = computeStats(mine);
+  const byModulo = {};
+  mine.forEach(t=>{ (byModulo[t.titulo] = byModulo[t.titulo]||[]).push(t); });
+
+  let html = `<div class="mt-head">
+    <div class="mt-progress-card" style="flex:1">
+      <div><div class="mt-progress-num">${stats.pct}%</div><div class="mt-progress-label">completado</div></div>
+      <div class="pbar-track"><div class="pbar-fill" style="width:${stats.pct}%"></div></div>
+      <div style="font-size:12.5px; opacity:.85; font-weight:600;">${stats.completado} de ${stats.relevant} tareas · ${cicloLabel(currentCycle)}</div>
+    </div>
+    <button class="btn btn-ghost" id="mt-export"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 3v13m0 0 4-4m-4 4-4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Descargar mis tareas</button>
+  </div>`;
+
+  Object.keys(byModulo).forEach(mod=>{
+    const items = byModulo[mod];
+    const s = computeStats(items);
+    html += `<div class="modulo-group card">
+      <div class="modulo-head">
+        <h3>${mod}</h3>
+        ${s.pct===100?`<div style="width:34px;height:34px;overflow:hidden;margin-right:2px;">${stampSVG()}</div>`:''}
+        <span class="m-count">${s.completado}/${s.relevant} · ${s.pct}%</span>
+      </div>
+      ${items.map(t=>taskRowHTML(t)).join('')}
+    </div>`;
+  });
+
+  view.innerHTML = html;
+  view.querySelectorAll('select.estado-select').forEach(sel=>{
+    sel.onchange = async (e)=>{
+      const id = parseInt(e.target.dataset.id);
+      const task = allTasks.find(x=>x.id===id);
+      task.estado = e.target.value;
+      e.target.className = 'estado-select ' + pctClass(task.estado);
+      await persistEstado(task);
+      checkPersonComplete(task.asignado, task.ciclo);
+      renderMisTareas();
+    };
+  });
+  document.getElementById('mt-export').onclick = ()=> exportTasks(mine, `Mis_Tareas_${currentUser.name.replace(/\s/g,'_')}_${currentCycle}`);
+}
+
+function taskRowHTML(t){
+  const overdue = isOverdue(t);
+  return `<div class="task-row">
+    <div>
+      <div class="task-title">${t.tarea}</div>
+      <div class="task-meta ${overdue?'overdue':''}">${overdue?`⚠ Vencida hace ${daysOverdue(t)} día(s) · `:''}Límite: ${fmtDate(t.fechaLimite)}</div>
+    </div>
+    <select class="estado-select ${pctClass(t.estado)}" data-id="${t.id}">
+      ${['No iniciado','En proceso','Completado','No aplica'].map(op=>`<option value="${op}" ${t.estado===op?'selected':''}>${op}</option>`).join('')}
+    </select>
+    <span></span>
+  </div>`;
+}
+
+/* =========================================================================
+   VISTA: DASHBOARD
+   ========================================================================= */
+function renderDashboard(){
+  const view = document.getElementById('view');
+  const tasks = tasksForCycle(currentCycle);
+  const stats = computeStats(tasks);
+  const overdue = tasks.filter(isOverdue).sort((a,b)=>daysOverdue(b)-daysOverdue(a));
+
+  const personNames = [...new Set(tasks.map(t=>t.asignado))];
+  const personRows = personNames.map(n=>{
+    const pt = tasks.filter(t=>t.asignado===n);
+    const s = computeStats(pt);
+    return {n, ...s};
+  }).sort((a,b)=> b.pct-a.pct);
+
+  const moduloNames = [...new Set(tasks.map(t=>t.titulo))];
+  const moduloRows = moduloNames.map(m=>{
+    const mt = tasks.filter(t=>t.titulo===m);
+    const s = computeStats(mt);
+    return {m, ...s};
+  });
+
+  view.innerHTML = `
+    <div class="mt-head" style="margin-bottom:18px;">
+      <div></div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost btn-sm" id="dash-export-cycle">Exportar ${cicloLabel(currentCycle)}</button>
+        <button class="btn btn-ghost btn-sm" id="dash-export-all">Exportar histórico completo</button>
+      </div>
+    </div>
+    <div class="dash-hero">
+      <div class="hero-ring ${stats.pct>=100?'done':''}">
+        <svg viewBox="0 0 104 104">
+          <circle class="ring-track" cx="52" cy="52" r="46"/>
+          <circle class="ring-fill" cx="52" cy="52" r="46"
+            stroke-dasharray="${(289.03*stats.pct/100).toFixed(1)} 289.03"/>
+        </svg>
+        <div class="hero-ring-label"><div class="hero-pct">${stats.pct}%</div><div class="hero-pct-sub">avance</div></div>
+      </div>
+      <div class="hero-text">
+        <h2>${cicloLabel(currentCycle)}</h2>
+        <p>${stats.completado} de ${stats.relevant} tareas completadas${stats.noAplica?` · ${stats.noAplica} no aplica`:''} · ${stats.total} en total</p>
+        ${stats.pct>=100?'<div class="hero-stamp">🎉 Cierre completado</div>':''}
+      </div>
+    </div>
+    <div class="kpi-grid">
+      <div class="card kpi-card">
+        <div class="kpi-icon i-brand"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3a1 1 0 011-1h4a1 1 0 011 1v1"/><path d="M9 11.5l1.8 1.8L15.5 9"/></svg></div>
+        <div><div class="kpi-num">${stats.total}</div><div class="kpi-label">Tareas totales · ${cicloLabel(currentCycle)}</div></div>
+      </div>
+      <div class="card kpi-card accent">
+        <div class="kpi-icon i-green"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
+        <div><div class="kpi-num">${stats.pct}%</div><div class="kpi-label">Avance del cierre</div></div>
+      </div>
+      <div class="card kpi-card">
+        <div class="kpi-icon i-purple"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.3"/><path d="M3.3 19c0-3.2 2.5-5.3 5.7-5.3S14.7 15.8 14.7 19"/><path d="M16.3 12.7l1.9 1.9L21.7 11"/></svg></div>
+        <div><div class="kpi-num">${personRows.filter(p=>p.pct===100).length}/${personRows.length}</div><div class="kpi-label">Personas al 100%</div></div>
+      </div>
+      <div class="card kpi-card ${overdue.length?'warn':''}" ${overdue.length?'id="kpi-vencidas" style="cursor:pointer;"':''}>
+        <div class="kpi-icon ${overdue.length?'i-danger':'i-brand'}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7.2v5l3.3 1.9"/></svg></div>
+        <div><div class="kpi-num">${overdue.length}</div><div class="kpi-label">Tareas vencidas</div></div>
+      </div>
+    </div>
+    <div class="dash-grid">
+      <div class="card chart-card">
+        <div class="section-title">Avance por módulo</div>
+        <div class="section-sub">% de tareas completadas sobre el total aplicable</div>
+        <div id="mod-bars"></div>
+      </div>
+      <div class="card chart-card">
+        <div class="section-title">Estado general</div>
+        <div class="section-sub">${cicloLabel(currentCycle)}</div>
+        <div id="donut-mount"></div>
+      </div>
+    </div>
+    <div class="dash-grid">
+      <div class="card" style="padding:20px 22px;">
+        <div class="section-title">Avance por persona</div>
+        <div class="section-sub">Ordenado por % completado — clic para ver sus tareas</div>
+        <div id="person-rows"></div>
+      </div>
+      <div class="card overdue-list" id="overdue-section">
+        <div class="section-title">Tareas vencidas</div>
+        <div class="section-sub">Fecha límite superada y aún sin completar</div>
+        ${overdue.length===0 ? '<div style="color:var(--text-faint); font-size:12.5px; padding:14px 0;">Sin tareas vencidas en este ciclo ✅</div>' :
+          overdue.slice(0,10).map(t=>`<div class="overdue-item">
+            <div><strong>${t.tarea}</strong><br><span style="color:var(--text-faint)">${t.asignado} · ${t.titulo}</span></div>
+            <div class="oi-days">${daysOverdue(t)}d</div>
+          </div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('mod-bars').innerHTML = moduloRows.map(r=>{
+    const segs = [
+      {k:'Completado', color:'#00A651', v:r.completado},
+      {k:'En proceso', color:'#FA8D29', v:r.enProceso},
+      {k:'No iniciado', color:'#C9D1DE', v:r.noIniciado},
+      {k:'No aplica', color:'#B9BAE0', v:r.noAplica},
+    ];
+    const modTasks = tasks.filter(t=>t.titulo===r.m)
+      .sort((a,b)=>(a.estado==='Completado')-(b.estado==='Completado'));
+    return `<details class="drill">
+      <summary class="mod-bar-row">
+        <svg class="chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 6l6 6-6 6"/></svg>
+        <div class="mod-bar-body">
+          <div class="m-name">${r.m}${r.pct===100?' 🟢':''}</div>
+          <div class="stack-track">${segs.map(s=>s.v?`<div class="stack-seg" style="width:${100*s.v/r.total}%;background:${s.color}"></div>`:'').join('')}</div>
+        </div>
+        <div class="m-pct">${r.pct}%</div>
+      </summary>
+      <div class="drill-body">
+        ${modTasks.map(t=>`<div class="drill-row">
+          <span class="pill ${pctClass(t.estado)}"><span class="dot"></span>${t.estado}</span>
+          <span class="drill-name">${t.tarea}</span>
+          <span class="drill-person">${t.asignado}</span>
+        </div>`).join('')}
+      </div>
+    </details>`;
+  }).join('');
+
+  document.getElementById('person-rows').innerHTML = personRows.map(p=>{
+    const pTasks = tasks.filter(t=>t.asignado===p.n)
+      .sort((a,b)=>(a.estado==='Completado')-(b.estado==='Completado'));
+    return `<details class="drill">
+      <summary class="mod-bar-row">
+        <svg class="chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 6l6 6-6 6"/></svg>
+        <span class="p-avatar">${initials(p.n)}</span>
+        <div class="mod-bar-body">
+          <div class="m-name">${p.n}${p.pct===100?' 🟢':''}</div>
+          <div class="mini-bar"><div style="width:${p.pct}%"></div></div>
+        </div>
+        <div class="m-pct">${p.completado}/${p.relevant} · ${p.pct}%</div>
+      </summary>
+      <div class="drill-body">
+        ${pTasks.map(t=>`<div class="drill-row">
+          <span class="pill ${pctClass(t.estado)}"><span class="dot"></span>${t.estado}</span>
+          <span class="drill-name">${t.tarea}</span>
+          <span class="drill-person">${t.titulo}</span>
+        </div>`).join('')}
+      </div>
+    </details>`;
+  }).join('');
+
+  const kpiVencidas = document.getElementById('kpi-vencidas');
+  if(kpiVencidas) kpiVencidas.onclick = ()=> document.getElementById('overdue-section').scrollIntoView({behavior:'smooth', block:'center'});
+
+  const C = 2*Math.PI*46;
+  const donutSegs = [
+    {label:'Completado', value:stats.completado, color:'#00A651'},
+    {label:'En proceso', value:stats.enProceso, color:'#FA8D29'},
+    {label:'No iniciado', value:stats.noIniciado, color:'#C9D1DE'},
+    {label:'No aplica', value:stats.noAplica, color:'#B9BAE0'},
+  ];
+  let acc = 0;
+  const arcs = donutSegs.filter(s=>s.value>0).map(s=>{
+    const len = (s.value/(stats.total||1))*C;
+    const arc = `<circle cx="60" cy="60" r="46" fill="none" stroke="${s.color}" stroke-width="16"
+      stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}"/>`;
+    acc += len;
+    return arc;
+  }).join('');
+  document.getElementById('donut-mount').innerHTML = `
+    <div class="donut-wrap">
+      <svg viewBox="0 0 120 120" class="donut-svg">
+        <circle cx="60" cy="60" r="46" fill="none" stroke="var(--border)" stroke-width="16"/>
+        ${arcs}
+      </svg>
+      <div class="donut-center"><div class="donut-center-pct">${stats.pct}%</div><div class="donut-center-sub">completado</div></div>
+    </div>
+    <div class="donut-legend">
+      ${donutSegs.map(s=>`<div class="legend-item"><span class="legend-dot" style="background:${s.color}"></span>${s.label} <b>${s.value}</b></div>`).join('')}
+    </div>`;
+
+  document.getElementById('dash-export-cycle').onclick = ()=> exportTasks(tasks, `Cierre_Contable_${currentCycle}`);
+  document.getElementById('dash-export-all').onclick = ()=> exportTasks(allTasks, `Cierre_Contable_Historico_Completo`);
+}
+
+/* =========================================================================
+   VISTA: HISTÓRICO — comportamiento a través de todos los ciclos
+   ========================================================================= */
+function moduleOrder(){
+  const fromTemplate = [...new Set(TASK_TEMPLATE.map(t=>t.titulo))];
+  const fromHistory = [...new Set(allTasks.map(t=>t.titulo))];
+  const extra = fromHistory.filter(m=>!fromTemplate.includes(m));
+  return [...fromTemplate, ...extra];
+}
+
+function semaforoColor(pct){ return pct>=90?'#00A651':pct>=50?'#FA8D29':'#D64550'; }
+
+function renderHistorico(){
+  const view = document.getElementById('view');
+  const ciclos = getCycles();
+  const cortos = ciclos.map(c=>cicloLabel(c).split(' ')[0].slice(0,3));
+  const porCiclo = ciclos.map(c=>({ciclo:c, ...computeStats(tasksForCycle(c))}));
+  const modulos = moduleOrder();
+
+  const bars = porCiclo.map((p,idx)=>{
+    const h = Math.max(4, Math.round(120*p.pct/100));
+    return `<div class="hist-bar-col">
+      <div class="hist-bar-pct">${p.pct}%</div>
+      <div class="hist-bar-track"><div class="hist-bar-fill" style="height:${h}px;background:${semaforoColor(p.pct)}"></div></div>
+      <div class="hist-bar-label">${cortos[idx]}<br><span style="opacity:.6">${p.ciclo.split('-')[0]}</span></div>
+    </div>`;
+  }).join('');
+
+  const heatRows = modulos.map(m=>{
+    const cells = ciclos.map(c=>{
+      const rows = allTasks.filter(t=>t.titulo===m && t.ciclo===c);
+      if(rows.length===0) return `<td class="heat-na">—</td>`;
+      const s = computeStats(rows);
+      const bg = s.pct>=90?'var(--green-bg)':s.pct>=50?'var(--orange-bg)':'var(--danger-bg)';
+      const fg = s.pct>=90?'var(--green-dk)':s.pct>=50?'#9A5300':'var(--danger)';
+      return `<td class="heat-cell" style="background:${bg};color:${fg}">${s.pct}%</td>`;
+    }).join('');
+    return `<tr><td class="heat-modname">${m}</td>${cells}</tr>`;
+  }).join('');
+
+  // Tareas de ciclos ya cerrados (todos menos el más reciente) que quedaron sin completar
+  const cicloVivo = ciclos[ciclos.length-1];
+  const pendientesHistoricas = allTasks
+    .filter(t=>t.ciclo!==cicloVivo && t.estado!=='Completado' && t.estado!=='No aplica')
+    .sort((a,b)=> a.ciclo===b.ciclo ? a.titulo.localeCompare(b.titulo) : a.ciclo.localeCompare(b.ciclo));
+
+  view.innerHTML = `
+    <div class="card" style="padding:22px 24px; margin-bottom:16px;">
+      <div class="section-title">Avance por ciclo</div>
+      <div class="section-sub">% completado en cada cierre, del más antiguo al más reciente</div>
+      <div class="hist-bars">${bars}</div>
+    </div>
+    <div class="card" style="padding:22px 24px; margin-bottom:16px;">
+      <div class="section-title">Cumplimiento por módulo</div>
+      <div class="section-sub">% completado de cada módulo en cada ciclo — así se ven los que fallan seguido. "—" = el módulo no existía ese mes.</div>
+      <div class="table-scroll">
+        <table class="heat-table">
+          <thead><tr><th></th>${cortos.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+          <tbody>${heatRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="padding:22px 24px;">
+      <div class="section-title">Tareas que no se cumplieron</div>
+      <div class="section-sub">De ciclos ya cerrados (no incluye ${cicloLabel(cicloVivo)}, que sigue en curso) — ${pendientesHistoricas.length} en total</div>
+      <div class="table-scroll" style="max-height:340px; overflow-y:auto;">
+        <table class="heat-table" style="font-size:12.3px;">
+          <thead><tr><th style="text-align:left;">Ciclo</th><th style="text-align:left;">Módulo / Tarea</th><th style="text-align:left;">Persona</th><th style="text-align:left;">Fecha límite</th><th style="text-align:left;">Estado</th></tr></thead>
+          <tbody>${pendientesHistoricas.map(t=>`<tr>
+            <td style="padding:6px 8px;white-space:nowrap;">${cicloLabel(t.ciclo)}</td>
+            <td style="padding:6px 8px;"><strong>${t.titulo}</strong><br><span style="color:var(--text-faint)">${t.tarea}</span></td>
+            <td style="padding:6px 8px;white-space:nowrap;">${t.asignado}</td>
+            <td style="padding:6px 8px;white-space:nowrap;">${t.fechaLimite?fmtDate(t.fechaLimite):'Sin fecha'}</td>
+            <td style="padding:6px 8px;white-space:nowrap;color:${t.estado==='En proceso'?'#9A5300':'var(--text-faint)'}">${t.estado}</td>
+          </tr>`).join('') || '<tr><td colspan="5" style="padding:14px 8px;color:var(--text-faint);">Todos los ciclos cerrados se completaron al 100% ✅</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* =========================================================================
+   VISTA: PANEL DE CONTROL (solo Derlin De León)
+   ========================================================================= */
+function renderPanel(){
+  const view = document.getElementById('view');
+  if(!currentUser || !currentUser.isAdmin){
+    view.innerHTML = `<div class="card locked-box">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="#93A0B4" stroke-width="1.7"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#93A0B4" stroke-width="1.7"/></svg>
+      <h3>Acceso restringido</h3>
+      <p>Solo Derlin De León puede modificar las fechas del cierre contable.</p>
+    </div>`;
+    return;
+  }
+  const tasks = tasksForCycle(currentCycle).slice().sort((a,b)=> a.titulo.localeCompare(b.titulo));
+
+  view.innerHTML = `
+    <div class="mt-head" style="align-items:flex-start;">
+      <div>
+        <div class="section-title">Panel de control — ${cicloLabel(currentCycle)}</div>
+        <div class="section-sub">Edita fechas de inicio y límite. Los cambios se guardan por fila.</div>
+      </div>
+
+    </div>
+    <div class="card panel-scroll">
+      <table class="panel">
+        <thead><tr><th>Módulo</th><th>Tarea</th><th>Asignado</th><th>Fecha inicio</th><th>Fecha límite</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="panel-body">
+          ${tasks.map(t=>`<tr id="row-${t.id}">
+            <td style="max-width:170px;">${t.titulo}</td>
+            <td style="max-width:230px;">${t.tarea}</td>
+            <td>${t.asignado}</td>
+            <td><input type="date" value="${t.fechaInicio||''}" data-id="${t.id}" data-field="fechaInicio"></td>
+            <td><input type="date" value="${t.fechaLimite||''}" data-id="${t.id}" data-field="fechaLimite"></td>
+            <td><span class="pill ${pctClass(t.estado)}"><span class="dot"></span>${t.estado}</span></td>
+            <td><button class="btn btn-green btn-sm save-row" data-id="${t.id}">Guardar</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  view.querySelectorAll('.save-row').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const id = parseInt(btn.dataset.id);
+      const row = document.getElementById('row-'+id);
+      const task = allTasks.find(t=>t.id===id);
+      row.querySelectorAll('input[type=date]').forEach(inp=>{ task[inp.dataset.field] = inp.value || null; });
+      await persistFechas(task);
+      row.classList.add('row-saved');
+      setTimeout(()=>row.classList.remove('row-saved'), 1200);
+      showToast('Fechas actualizadas para: '+task.tarea);
+    };
+  });
+
+}
+
+/* =========================================================================
+   EXPORTAR (SheetJS)
+   ========================================================================= */
+function exportTasks(tasks, filename){
+  const data = tasks.map(t=>({
+    Módulo:t.titulo, Tarea:t.tarea, Asignado:t.asignado,
+    'Fecha inicio':fmtDate(t.fechaInicio), 'Fecha límite':fmtDate(t.fechaLimite),
+    Estado:t.estado, Ciclo:cicloLabel(t.ciclo)
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = [{wch:34},{wch:46},{wch:20},{wch:13},{wch:13},{wch:13},{wch:14}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Cierre Contable');
+  XLSX.writeFile(wb, filename+'.xlsx');
+}
+
+/* =========================================================================
+   TOAST
+   ========================================================================= */
+function showToast(msg, success=false){
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (success?' success':'');
+  t.innerHTML = (success?'🎉 ':'✓ ')+msg;
+  wrap.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); }, 4200);
+}
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+(async function init(){
+  await initAuth();
+  await loadTareas();
+  const cycles = getCycles();
+  currentCycle = cycles[cycles.length-1] || null;
+  renderAll();
+})();
+</script>
+</body>
+</html>
